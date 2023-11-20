@@ -24,7 +24,7 @@ export function FlexColEnd({ children, className, ...props }: FlexProps) {
   return (
     <div
       className={twMerge(
-        "w-auto flex flex-col items-start justify-end gap-3",
+        "w-auto flex flex-col items-end justify-end gap-3",
         className
       )}
       {...props}

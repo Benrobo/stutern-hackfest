@@ -1,5 +1,7 @@
+import ChatPreview from "@/components/Chat/Preview";
 import {
   FlexColCenter,
+  FlexColEnd,
   FlexColStart,
   FlexRowCenterBtw,
   FlexRowStart,
@@ -13,7 +15,7 @@ import { extractLinks } from "@/lib/http/requests";
 import { cn } from "@/lib/utils";
 import { ResponseData } from "@/types";
 import { useMutation } from "@tanstack/react-query";
-import { Bot, FileTerminal, FileText, Theater, X } from "lucide-react";
+import { Bot, FileText, Theater, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -76,7 +78,7 @@ function Chat() {
 
   return (
     <Layout activePage="chatbots">
-      <FlexColStart className="w-full h-screen px-5 py-5">
+      <FlexColStart className="w-full h-screen px-5 py-2">
         <FlexRowCenterBtw className="w-full">
           <h1 className="text-white-100 font-ppSB">Create chatbot</h1>
           <Button
@@ -152,16 +154,16 @@ interface ChatWidgetProps {
 
 function ChatWidget({ botDetails, setBotDetails }: ChatWidgetProps) {
   return (
-    <FlexColStart className="w-full h-screen mt-5 overflow-h-scroll">
-      <FlexColStart className="w-full">
-        <p className="text-white-100 font-ppSB">Chatbot Widget</p>
-        <p className="text-gray-100 font-ppR text-[12px] ">
-          Create chatbot widget
-        </p>
-      </FlexColStart>
-      <br />
-      <FlexRowStartBtw className="w-full h-full overflow-h-scroll">
-        <FlexColStart className="w-full h-full">
+    <FlexColStart className="w-full h-screen">
+      <FlexRowStartBtw className="w-full h-screen overflow-h-scroll">
+        <FlexColStart className="w-fit min-w-[300px] h-full">
+          <FlexColStart className="w-full">
+            <p className="text-white-100 font-ppSB">Chatbot Widget</p>
+            <p className="text-gray-100 font-ppR text-[12px] ">
+              Create chatbot widget
+            </p>
+          </FlexColStart>
+          <br />
           <Input
             className="text-[13px] text-white-100 border-none placeholder:text-white-300 placeholder:opacity-[.6] font-jbSB bg-dark-200"
             placeholder="Name"
@@ -182,9 +184,10 @@ function ChatWidget({ botDetails, setBotDetails }: ChatWidgetProps) {
             }
           />
         </FlexColStart>
-        <FlexColStart className="w-fit h-full min-h-[300px] min-w-[400px] bg-blue-200 overflow-h-scroll ">
-          output comp
-        </FlexColStart>
+        <FlexColEnd className="w-full h-auto px-9 overflow-h-scroll ">
+          <ChatPreview botName={botDetails?.name} />
+          <br />
+        </FlexColEnd>
       </FlexRowStartBtw>
     </FlexColStart>
   );

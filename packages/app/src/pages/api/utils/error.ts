@@ -8,6 +8,7 @@ export default function catchErrors(fn: Function) {
     try {
         await fn(req, res)
     } catch (e: any) {
+        console.log(e?.message)
         if(e instanceof HttpException){
           return res.status(e.status).json({
             code: e.code,

@@ -91,7 +91,7 @@ function ChatTrainingData() {
     "file"
   );
   const [loading, setLoading] = useState(false);
-  const [links, setLinks] = useState<{link: string, text: string}[] | []>([])
+  const [links, setLinks] = useState<{url: string, content: string}[] | []>([])
   const [webpageUrl, setWebPageUrl] = useState("");
   const extractPageLinkMutation = useMutation({
     mutationFn: async (data: any)=> await extractLinks(data)
@@ -125,13 +125,6 @@ function ChatTrainingData() {
     <FlexColStart className="w-full h-full">
       <FlexRowStartCenter>
         <p className="text-white-100">Training Data</p>
-        <Button
-          variant="primary"
-          className="text-white-100 text-[10px] scale-[.95] font-ppSB"
-          disabled
-        >
-          Train Model
-        </Button>
       </FlexRowStartCenter>
       <br />
       {/* Tags to differentiate choosen selected data type */}
@@ -172,15 +165,15 @@ function ChatTrainingData() {
 
       {/* fetched urls */}
       <FlexColStart className="w-full">
-        {links.length > 0 && !extractPageLinkMutation.isPending &&
+        {links.length > 0 &&
+          !extractPageLinkMutation.isPending &&
           links.map((link, i) => (
             <li className="" key={i}>
               <a href="#" className="text-white-300 text-[12px] font-ppSB">
-                {link.link}
+                {link?.url}
               </a>
             </li>
-          ))
-        }
+          ))}
       </FlexColStart>
     </FlexColStart>
   );

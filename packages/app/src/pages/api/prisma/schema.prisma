@@ -1,0 +1,54 @@
+generator client {
+    provider = "prisma-client-js"
+    previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+    relationMode = "prisma"
+    extensions = [pgvector(map: "vector")]
+}
+
+
+enum CharDatasource {
+    WEBPAGES
+    PDF
+}
+
+model Users {
+    id       String @id @unique // clerk user id 
+    userId   String @default(uuid())
+    email    String @unique
+    username String
+    fullname String
+    image    String
+
+    chats Chats[]
+}
+
+model Chats {
+    id        String @id @unique @default(uuid())
+    name String
+    title String
+    description String
+    datasource Datasource[]
+    user Users[]
+}
+
+model Datasource {
+    id       String @id @unique @default(uuid())
+    type CharDatasource @default(WEBPAGES)
+    chatId String
+    content String
+    embedding  Unsupported("vector")?
+
+    chat Chats @relation(fields: [chatId], references: [id])
+}
+
+model Inbox {
+    id      String @id @unique @default(uuid())
+    chatId  String
+}
+
+// psql -h localhost -d test_db -U root -p 5432

@@ -1,6 +1,6 @@
 import { CharacterTextSplitter } from "langchain/text_splitter";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
-import { FaissStore } from "langchain/vectorstores/faiss";
+import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
 export default class AIServices {
   private splitter = new CharacterTextSplitter({
@@ -27,16 +27,13 @@ export default class AIServices {
 
     console.log(tokens.length);
 
-    // init embedding instance
-    this.embeddings;
-
-    const vectorstores = await FaissStore.fromTexts(
+    const vectorstores = await MemoryVectorStore.fromTexts(
       tokens,
       metadata,
       this.embeddings
     );
 
-    const resultOne = await vectorstores.similaritySearch("UserDesk", 5);
+    const resultOne = await vectorstores.similaritySearch("what is UserDesk used for", 5);
     console.log(resultOne);
 
     // await vectorstores.save("./");

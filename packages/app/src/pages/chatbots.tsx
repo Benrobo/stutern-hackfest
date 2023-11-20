@@ -4,13 +4,18 @@ import {
   FlexRowCenterBtw,
   FlexRowStart,
   FlexRowStartBtw,
+  FlexRowStartCenter,
 } from "@/components/Flex";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { extractLinks } from "@/lib/http/requests";
 import { cn } from "@/lib/utils";
+import { ResponseData } from "@/types";
+import { useMutation } from "@tanstack/react-query";
 import { FileText, Theater } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 const Tabs = ["Widget", "Training Data"] as const;
 
@@ -85,23 +90,62 @@ function ChatTrainingData() {
   const [selectedDataType, setSelectedDataType] = useState<"file" | "webpage">(
     "file"
   );
-  const [links, setLinks] = useState([])
+  const [loading, setLoading] = useState(false);
+  const [links, setLinks] = useState<{link: string, text: string}[] | []>([])
+  const [webpageUrl, setWebPageUrl] = useState("");
+  const extractPageLinkMutation = useMutation({
+    mutationFn: async (data: any)=> await extractLinks(data)
+  })
+
+  const extractWebpageUrlLinks = async ()=> {
+    if(!webpageUrl) return toast.error("Please enter a valid url")
+   
+    extractPageLinkMutation.mutate({url: webpageUrl})
+  }
+
+  useEffect(() => {
+    if (extractPageLinkMutation.error) {
+      const data = (extractPageLinkMutation.error as any)?.response
+        ?.data as ResponseData;
+      toast.error(data?.message as string);
+    }
+    if (extractPageLinkMutation.data) {
+      const data = extractPageLinkMutation.data as ResponseData;
+      setLinks(data.data)
+    }
+  }, [
+    extractPageLinkMutation.data,
+    extractPageLinkMutation.isPending,
+    extractPageLinkMutation.error,
+  ]);
+
+  console.log(links)
 
   return (
     <FlexColStart className="w-full h-full">
-      <p className="text-white-100">Training Data</p>
+      <FlexRowStartCenter>
+        <p className="text-white-100">Training Data</p>
+        <Button
+          variant="primary"
+          className="text-white-100 text-[10px] scale-[.95] font-ppSB"
+          disabled
+        >
+          Train Model
+        </Button>
+      </FlexRowStartCenter>
+      <br />
       {/* Tags to differentiate choosen selected data type */}
 
       <FlexRowStart className="w-full h-fit">
         <Button
-          variant="primary"
+          variant="appeal"
           className="text-white-100 text-[8px] scale-[.95] font-ppSB"
           disabled
         >
           Upload File
         </Button>
         <Button
-          variant="primary"
+          variant="appeal"
           className="text-white-100 text-[8px] scale-[.95] font-ppSB"
         >
           Webpage
@@ -110,22 +154,33 @@ function ChatTrainingData() {
 
       {/* Input field to enter webpage url */}
       <FlexRowStart className="w-full mt-3">
-        <Input placeholder="Enter webpage url" type="url" className="w-auto min-w-[300px] bg-dark-200 border-none text-white-100 placeholder:text-white-300 text-[12px] font-ppR" />
+        <Input
+          placeholder="Enter webpage url"
+          type="url"
+          className="w-auto min-w-[300px] bg-dark-200 border-none text-white-100 placeholder:text-white-300 text-[12px] font-ppR"
+          onChange={(e: any) => setWebPageUrl(e.target.value)}
+        />
         <Button
           variant="primary"
           className="text-white-100 text-[8px] scale-[.95] font-ppSB"
+          onClick={extractWebpageUrlLinks}
+          disabled={extractPageLinkMutation.isPending}
         >
-          Fetch Links
+          {extractPageLinkMutation.isPending ? "Loading..." : "Fetch Links"}
         </Button>
       </FlexRowStart>
 
       {/* fetched urls */}
       <FlexColStart className="w-full">
-        <li className="">
-          <a href="#" className="text-white-300 text-[12px] font-ppSB">
-            https://www.example.com
-          </a>
-        </li>
+        {links.length > 0 && !extractPageLinkMutation.isPending &&
+          links.map((link, i) => (
+            <li className="" key={i}>
+              <a href="#" className="text-white-300 text-[12px] font-ppSB">
+                {link.link}
+              </a>
+            </li>
+          ))
+        }
       </FlexColStart>
     </FlexColStart>
   );

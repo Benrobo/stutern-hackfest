@@ -13,7 +13,7 @@ import { extractLinks } from "@/lib/http/requests";
 import { cn } from "@/lib/utils";
 import { ResponseData } from "@/types";
 import { useMutation } from "@tanstack/react-query";
-import { FileText, Theater } from "lucide-react";
+import { Bot, FileTerminal, FileText, Theater, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -21,17 +21,70 @@ const Tabs = ["Widget", "Training Data"] as const;
 
 function Chat() {
   const [activeTab, setActiveTab] = useState<(typeof Tabs)[number]>("Widget");
+  const [links, setLinks] = useState<{ url: string; content: string }[] | []>(
+    []
+  );
+  const [fileteredLinks, setFilteredLinks] = useState<string[]>([])
+  const [webpageUrl, setWebPageUrl] = useState("");
+  const [botDetails, setBotDetails] = useState({
+    name: "",
+    agent_name: "",
+  });
+  const extractPageLinkMutation = useMutation({
+    mutationFn: async (data: any) => await extractLinks(data),
+  });
+  const createChatMutation = useMutation({
+    mutationFn: async (data: any) => await extractLinks(data),
+  });
+
+  const extractWebpageUrlLinks = () => {
+    if (!webpageUrl) return toast.error("Please enter a valid url");
+
+    extractPageLinkMutation.mutate({ url: webpageUrl });
+  };
+
+  const filterLinks = (url: string) => {
+    const filtered = links.filter((link) => link.url !== url);
+    setLinks(filtered);
+    const _prev = fileteredLinks;
+    const comb = [..._prev, url] as string[];
+    setFilteredLinks(comb);
+  };
+
+  const disableButton = ()=>{
+    if(links.length === 0) return true
+    if(botDetails.name === "") return true
+    if(botDetails.agent_name === "") return true
+    return false
+  }
+
+  useEffect(() => {
+    if (extractPageLinkMutation.error) {
+      const data = (extractPageLinkMutation.error as any)?.response
+        ?.data as ResponseData;
+      toast.error(data?.message as string);
+    }
+    if (extractPageLinkMutation.data) {
+      const data = extractPageLinkMutation.data as ResponseData;
+      setLinks(data.data);
+    }
+  }, [
+    extractPageLinkMutation.data,
+    extractPageLinkMutation.isPending,
+    extractPageLinkMutation.error,
+  ]);
 
   return (
     <Layout activePage="chatbots">
-      <FlexColStart className="w-full px-5 py-5">
+      <FlexColStart className="w-full h-screen px-5 py-5">
         <FlexRowCenterBtw className="w-full">
           <h1 className="text-white-100 font-ppSB">Create chatbot</h1>
           <Button
             variant={"primary"}
-            className=" text-white-100 font-ppSB text-[13px]"
+            className=" text-white-100 font-ppB py-2 text-[12px]"
+            disabled={disableButton()}
           >
-            Create Bot
+            <Bot className="mr-2" size={20} /> Create Bot
           </Button>
         </FlexRowCenterBtw>
 
@@ -63,8 +116,20 @@ function Chat() {
           ))}
         </FlexRowStart>
 
-        {activeTab === "Widget" && <ChatWidget />}
-        {activeTab === "Training Data" && <ChatTrainingData />}
+        {activeTab === "Widget" && (
+          <ChatWidget botDetails={botDetails} setBotDetails={setBotDetails} />
+        )}
+        {activeTab === "Training Data" && (
+          <ChatTrainingData
+            extractPageLinkMutation={extractPageLinkMutation}
+            links={links}
+            setLinks={setLinks}
+            webpageUrl={webpageUrl}
+            setWebPageUrl={setWebPageUrl}
+            extractWebpageUrlLinks={extractWebpageUrlLinks}
+            filterLinks={filterLinks}
+          />
+        )}
       </FlexColStart>
     </Layout>
   );
@@ -72,54 +137,83 @@ function Chat() {
 
 export default Chat;
 
-function ChatWidget() {
+interface ChatWidgetProps {
+  botDetails: {
+    name: string;
+    agent_name: string;
+  };
+  setBotDetails: React.Dispatch<
+    React.SetStateAction<{
+      name: string;
+      agent_name: string;
+    }>
+  >;
+}
+
+function ChatWidget({ botDetails, setBotDetails }: ChatWidgetProps) {
   return (
-    <FlexRowStartBtw className="w-full h-full">
-      <FlexColStart className="w-full h-full">
-        <Input placeholder="Name" />
-        <Input placeholder="Agent Name" />
+    <FlexColStart className="w-full h-screen mt-5 overflow-h-scroll">
+      <FlexColStart className="w-full">
+        <p className="text-white-100 font-ppSB">Chatbot Widget</p>
+        <p className="text-gray-100 font-ppR text-[12px] ">
+          Create chatbot widget
+        </p>
       </FlexColStart>
-      <FlexColStart className="w-fit h-full min-h-[400px] min-w-[400px] bg-blue-200 ">
-        output comp
-      </FlexColStart>
-    </FlexRowStartBtw>
+      <br />
+      <FlexRowStartBtw className="w-full h-full overflow-h-scroll">
+        <FlexColStart className="w-full h-full">
+          <Input
+            className="text-[13px] text-white-100 border-none placeholder:text-white-300 placeholder:opacity-[.6] font-jbSB bg-dark-200"
+            placeholder="Name"
+            value={botDetails.name}
+            onChange={(e) =>
+              setBotDetails((prev) => ({ ...prev, name: e.target.value }))
+            }
+          />
+          <Input
+            className="text-[13px] text-white-100 border-none placeholder:text-white-300 placeholder:opacity-[.6] font-jbSB bg-dark-200"
+            placeholder="Agent Name"
+            value={botDetails.agent_name}
+            onChange={(e) =>
+              setBotDetails((prev) => ({
+                ...prev,
+                agent_name: e.target.value,
+              }))
+            }
+          />
+        </FlexColStart>
+        <FlexColStart className="w-fit h-full min-h-[300px] min-w-[400px] bg-blue-200 overflow-h-scroll ">
+          output comp
+        </FlexColStart>
+      </FlexRowStartBtw>
+    </FlexColStart>
   );
 }
 
-function ChatTrainingData() {
+interface ChatTrainingDataProps {
+  links: { url: string; content: string }[];
+  setLinks: React.Dispatch<
+    React.SetStateAction<{ url: string; content: string }[]>
+  >;
+  webpageUrl: string;
+  setWebPageUrl: React.Dispatch<React.SetStateAction<string>>;
+  extractPageLinkMutation: any;
+  extractWebpageUrlLinks: () => void;
+  filterLinks: (url: string) => void;
+}
+
+function ChatTrainingData({
+  links,
+  setLinks,
+  webpageUrl,
+  setWebPageUrl,
+  extractPageLinkMutation,
+  extractWebpageUrlLinks,
+  filterLinks,
+}: ChatTrainingDataProps) {
   const [selectedDataType, setSelectedDataType] = useState<"file" | "webpage">(
     "file"
   );
-  const [loading, setLoading] = useState(false);
-  const [links, setLinks] = useState<{url: string, content: string}[] | []>([])
-  const [webpageUrl, setWebPageUrl] = useState("");
-  const extractPageLinkMutation = useMutation({
-    mutationFn: async (data: any)=> await extractLinks(data)
-  })
-
-  const extractWebpageUrlLinks = async ()=> {
-    if(!webpageUrl) return toast.error("Please enter a valid url")
-   
-    extractPageLinkMutation.mutate({url: webpageUrl})
-  }
-
-  useEffect(() => {
-    if (extractPageLinkMutation.error) {
-      const data = (extractPageLinkMutation.error as any)?.response
-        ?.data as ResponseData;
-      toast.error(data?.message as string);
-    }
-    if (extractPageLinkMutation.data) {
-      const data = extractPageLinkMutation.data as ResponseData;
-      setLinks(data.data)
-    }
-  }, [
-    extractPageLinkMutation.data,
-    extractPageLinkMutation.isPending,
-    extractPageLinkMutation.error,
-  ]);
-
-  console.log(links)
 
   return (
     <FlexColStart className="w-full h-full">
@@ -152,6 +246,7 @@ function ChatTrainingData() {
           type="url"
           className="w-auto min-w-[300px] bg-dark-200 border-none text-white-100 placeholder:text-white-300 text-[12px] font-ppR"
           onChange={(e: any) => setWebPageUrl(e.target.value)}
+          value={webpageUrl}
         />
         <Button
           variant="primary"
@@ -168,11 +263,14 @@ function ChatTrainingData() {
         {links.length > 0 &&
           !extractPageLinkMutation.isPending &&
           links.map((link, i) => (
-            <li className="" key={i}>
+            <FlexRowCenterBtw className="" key={i}>
               <a href="#" className="text-white-300 text-[12px] font-ppSB">
                 {link?.url}
               </a>
-            </li>
+              <button onClick={() => filterLinks(link.url)}>
+                <X className="text-red-305" size={15} />
+              </button>
+            </FlexRowCenterBtw>
           ))}
       </FlexColStart>
     </FlexColStart>

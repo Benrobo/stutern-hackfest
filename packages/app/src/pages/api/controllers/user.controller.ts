@@ -4,6 +4,7 @@ import { extractLinksFromWebPages } from "../utils";
 import sendResponse from "../utils/sendResponse";
 import { RESPONSE_CODE } from "@/types";
 import AIServices from "../services/AI";
+import redisClient from "../config/redis";
 
 const aiServices = new AIServices()
 
@@ -14,20 +15,20 @@ export default class User {
     const payload = req.body;
     const url = payload?.url;
 
-    const links = await extractLinksFromWebPages(url);
-    
-    // get all link contents and append them to tmp variable
-    let contents = "";
-    if(links.rawData.length > 0){
-      for (const link of links.rawData) {
-        contents += link.content;
-      }
+    // store all links in cache to prevent recalculation
+    let links: {url: string, content: string}[] | any[] = [];
+    const urlInfo = await redisClient.get(url);
+    if(urlInfo){
+      links = urlInfo as any;
+    }else{
+      const extractedLinks = await extractLinksFromWebPages(url);
+      links = extractedLinks.links;
+
+      // cache data
+      await redisClient.set(url, JSON.stringify(extractedLinks.links));
+      await redisClient.expire(url, 60 * 30); // expire in 30 minutes
     }
 
-    // send contents to AI service
-    const result = await aiServices.getEmbeddings(contents, links.rawData);
-    
-
-    sendResponse.success(res, RESPONSE_CODE.SUCCESS, "Links extracted successfully", 200, links.links);
+    sendResponse.success(res, RESPONSE_CODE.SUCCESS, "Links extracted successfully", 200, links);
   }
 }

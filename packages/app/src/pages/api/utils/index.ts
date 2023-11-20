@@ -76,18 +76,7 @@ export async function extractLinksFromWebPages(url: string) {
                 url: _url,
                 content: textContent
             })
-        //   if (textContent) {
-        //     if (urlMap.has(_url)) {
-        //       // Append to existing value
-        //       urlMap.set(_url, `${urlMap.get(_url)} ${textContent}`);
-        //     } else {
-        //       // Set initial value
-        //       urlMap.set(_url, textContent);
-        //     }
-        //   }
         });
-
-        // return urlMap
       })
     );
 
@@ -99,21 +88,9 @@ export async function extractLinksFromWebPages(url: string) {
             index === self.findIndex((t: any) => t.url === link.url)
         );
 
-
-    // loop through all links and create a new array
-    // allLinks.forEach((link) => {
-    //   link.forEach((value, key) => {
-    //     const linkexits = _links.find((l : any) => l?.url === key);
-    //     if (!linkexits) {
-    //       // append to existing value
-    //       _links.push({ url: key, content: value });
-    //     }
-    //   });
-    // });
-
     return {
         links: nonDuplicateLinks,
-        rawData: _links
+        metadata: _links
     };
   } catch (error) {
     console.error("Error:", error);

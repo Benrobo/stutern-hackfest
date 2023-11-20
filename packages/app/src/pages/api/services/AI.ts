@@ -1,4 +1,4 @@
-import { CharacterTextSplitter } from "langchain/text_splitter";
+import { CharacterTextSplitter , RecursiveCharacterTextSplitter} from "langchain/text_splitter";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
@@ -21,9 +21,27 @@ export default class AIServices {
     return chunks;
   }
 
+  async retrieveWebPageEmbeddings(text: string, metadata: object[]) {
+    const splitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 400,
+      chunkOverlap: 1,
+    });
+    const tokens = await splitter.splitText(text as any);
+    const vectorstores = await MemoryVectorStore.fromTexts(
+      tokens,
+      metadata,
+      this.embeddings
+    );
+
+    return vectorstores.memoryVectors;
+  }
+
   async getEmbeddings(text: string, metadata: object[]) {
-    // const tokens = await this.splitter.splitText(text as any);
-    const tokens = this.splitTextIntoChunks(text, 400, 50);
+    const splitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 200,
+      chunkOverlap: 1,
+    });
+    const tokens = await splitter.splitText(text as any);
 
     console.log(tokens.length);
 
@@ -33,8 +51,10 @@ export default class AIServices {
       this.embeddings
     );
 
-    const resultOne = await vectorstores.similaritySearch("what is UserDesk used for", 5);
-    console.log(resultOne);
+    console.log(vectorstores);
+
+    // const resultOne = await vectorstores.("who is Benaiah?", 5);
+    // console.log(resultOne);
 
     // await vectorstores.save("./");
     // return embeddings;

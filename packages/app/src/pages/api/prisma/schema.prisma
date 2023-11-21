@@ -21,6 +21,12 @@ enum ConversationControl {
     User
 }
 
+enum SenderType {
+  ANONYMOUS
+  AI
+  ADMIN
+}
+
 model Users {
     id       String @id @unique // clerk user id 
     userId   String @default(uuid())
@@ -31,6 +37,7 @@ model Users {
 
     chats Chats[]
     conversation Conversations[]
+    messages Messages[]
 }
 
 model Chats {
@@ -41,7 +48,7 @@ model Chats {
 
     datasource Datasource[]
     user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
-    conversation Conversations[]
+    conversations Conversations[]
 
     createdAt DateTime @default(now())
 
@@ -75,20 +82,55 @@ model DatasourceMetaData {
     @@index([data_source_id])
 }
 
+model Messages {
+    id String @id @unique @default(uuid())
+    userId String?
+    message String
+    sender_type SenderType
+    conversation_id String
+    createdAt DateTime @default(now())
+
+    conversation Conversations @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+    user Users? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([conversation_id])
+    @@index([userId])
+}
+
+
+// conversations are mean't to be created/started only from anonymous user
 model Conversations {
-    id      String @id @unique @default(uuid())
-    chatId  String
-    userId  String
+    id String @id @unique @default(uuid())
+    anonymous_id String
+    chatId String
+    userId String
     in_control ConversationControl @default(AI)
-    content String
 
     createdAt DateTime @default(now())
 
     chat Chats @relation(fields: [chatId], references: [id], onDelete: Cascade)
-    user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+    user Users? @relation(fields: [userId], references: [id], onDelete: Cascade)
+    messages Messages[]
 
     @@index([chatId])
     @@index([userId])
 }
+
+// model Conversations {
+//     id      String @id @unique @default(uuid())
+//     chatId  String
+//     userId  String?
+//     in_control ConversationControl @default(AI)
+//     message String
+
+
+//     createdAt DateTime @default(now())
+
+//     chat Chats @relation(fields: [chatId], references: [id], onDelete: Cascade)
+//     user Users? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+//     @@index([chatId])
+//     @@index([userId])
+// }
 
 // psql -h localhost -d test_db -U root -p 5432

@@ -20,7 +20,7 @@ function SideBar({ activePage }: SidebarProps) {
   };
 
   return (
-    <div className="w-full h-full max-w-[220px] relative border-r-solid border-r-[1px] border-r-dark-400 hideScrollBar py-1 ">
+    <div className="w-full h-full max-w-[170px] relative border-r-solid border-r-[1px] border-r-dark-400 hideScrollBar py-1 ">
       <div className="w-full flex items-center justify-start gap-3 py-2 px-4">
         {/* <Image
           src={"/images/logo/logo.png"}
@@ -31,7 +31,7 @@ function SideBar({ activePage }: SidebarProps) {
         /> */}
         <span className="font-ppSB text-white-100 text-[1em]">SwissAI</span>
       </div>
-      <div className="w-full mt-5 px-4 flex flex-col items-center justify-center gap-3">
+      <div className="w-full mt-5 px-3 flex flex-col items-center justify-center gap-2">
         {/* home item */}
         <Link
           href="/dashboard"

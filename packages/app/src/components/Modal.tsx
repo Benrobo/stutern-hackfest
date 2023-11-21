@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { IoMdClose } from "react-icons/io";
-import { IoClose } from "react-icons/io5";
+// import { IoMdClose } from "react-icons/io";
+// import { IoClose } from "react-icons/io5";
 import { Button } from "./ui/button";
-import { CloseSquare } from "iconsax-react";
+// import { CloseSquare } from "iconsax-react";
 import { twMerge } from "tailwind-merge";
 
 interface ModalProp {

@@ -8,6 +8,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     await chatController.createChat(req, res);
   }
+  if (req.method === "GET") {
+    await chatController.getChats(req, res);
+  }
 }
 
 export default catchErrors(isAuthenticated(handler));

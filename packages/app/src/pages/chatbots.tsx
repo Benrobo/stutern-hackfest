@@ -95,8 +95,16 @@ function Chat() {
       
       if(!data.errorStatus){
         toast.success(`Chatbot created successfully`)
+        createChatMutation.reset();
+
+        setLinks([])
+        setWebPageUrl("")
+        setBotDetails({name: "", agent_name: ""})
+        setFilteredLinks([])
+        
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     createChatMutation.data,
     createChatMutation.isPending,
@@ -316,7 +324,7 @@ function ChatTrainingData({
           links.map((link, i) => (
             <FlexRowCenterBtw className="" key={i}>
               <a href="#" className="text-white-300 text-[12px] font-ppSB">
-                {link?.url}
+                {link?.url.slice(0, 30).concat("...")}
               </a>
               <button onClick={() => filterLinks(link.url)}>
                 <X className="text-red-305" size={15} />

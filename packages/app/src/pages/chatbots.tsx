@@ -26,6 +26,7 @@ function Chat() {
   const [links, setLinks] = useState<{ url: string; content: string }[] | []>(
     []
   );
+  const [datasourceType, setDatasourceType] = useState<"file" | "webpage">("webpage");
   const [fileteredLinks, setFilteredLinks] = useState<string[]>([])
   const [webpageUrl, setWebPageUrl] = useState("");
   const [botDetails, setBotDetails] = useState({
@@ -75,6 +76,21 @@ function Chat() {
     extractPageLinkMutation.isPending,
     extractPageLinkMutation.error,
   ]);
+
+  function createChat(){
+    const payload = {
+      name: botDetails.name,
+      agent_name: botDetails.agent_name,
+      filtered_links: fileteredLinks,
+      webpage_url: webpageUrl,
+      type: datasourceType,
+    };
+
+    if(!payload.name) return toast.error("Please enter a valid name")
+    if(!payload.agent_name) return toast.error("Please enter a valid agent name")
+
+    createChatMutation.mutate(payload)
+  }
 
   return (
     <Layout activePage="chatbots">

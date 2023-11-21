@@ -9,10 +9,11 @@ import {
   FlexRowStartCenter,
 } from "@/components/Flex";
 import Layout from "@/components/Layout";
+import { Spinner } from "@/components/Spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { extractLinks } from "@/lib/http/requests";
-import { cn } from "@/lib/utils";
+import { createChat, extractLinks } from "@/lib/http/requests";
+import { cn, logout } from "@/lib/utils";
 import { ResponseData } from "@/types";
 import { useMutation } from "@tanstack/react-query";
 import { Bot, FileText, Theater, X } from "lucide-react";
@@ -37,7 +38,7 @@ function Chat() {
     mutationFn: async (data: any) => await extractLinks(data),
   });
   const createChatMutation = useMutation({
-    mutationFn: async (data: any) => await extractLinks(data),
+    mutationFn: async (data: any) => await createChat(data),
   });
 
   const extractWebpageUrlLinks = () => {
@@ -77,7 +78,32 @@ function Chat() {
     extractPageLinkMutation.error,
   ]);
 
-  function createChat(){
+  useEffect(() => {
+    if (createChatMutation.error) {
+      const data = (createChatMutation.error as any)?.response
+        ?.data as ResponseData;
+        console.log({code: data.code})
+      if(data.code === "UNAUTHORIZED"){
+        toast.error("Please login to continue")
+        logout()
+        return;
+      }
+      toast.error(data?.message as string);
+    }
+    if (createChatMutation.data) {
+      const data = createChatMutation.data as ResponseData;
+      
+      if(!data.errorStatus){
+        toast.success(`Chatbot created successfully`)
+      }
+    }
+  }, [
+    createChatMutation.data,
+    createChatMutation.isPending,
+    createChatMutation.error,
+  ]);
+
+  function handleCreateChat(){
     const payload = {
       name: botDetails.name,
       agent_name: botDetails.agent_name,
@@ -99,10 +125,16 @@ function Chat() {
           <h1 className="text-white-100 font-ppSB">Create chatbot</h1>
           <Button
             variant={"primary"}
-            className=" text-white-100 font-ppB py-2 text-[12px]"
-            disabled={disableButton()}
+            className=" text-white-100 gap-3 font-ppB py-2 text-[12px]"
+            disabled={disableButton() ?? createChatMutation.isPending}
+            onClick={handleCreateChat}
           >
-            <Bot className="mr-2" size={20} /> Create Bot
+            {createChatMutation.isPending ? (
+              <Spinner color="#fff" size={15} />
+            ) : (
+              <Bot className="mr-2" size={20} />
+            )}{" "}
+            Create Bot
           </Button>
         </FlexRowCenterBtw>
 

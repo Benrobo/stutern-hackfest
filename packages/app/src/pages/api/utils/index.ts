@@ -3,6 +3,7 @@ import cheerio from "cheerio";
 import HttpException from "../exception";
 import fs from "fs";
 import puppeteer from "puppeteer";
+import { RESPONSE_CODE } from "@/types";
 
 export async function extractLinksFromWebPages(url: string) {
   try {
@@ -96,7 +97,7 @@ export async function extractLinksFromWebPages(url: string) {
     console.error("Error:", error);
     throw new HttpException(
       "Error extracting links",
-      "EXTRACT_LINKS_ERROR",
+      RESPONSE_CODE.EXTRACT_LINKS_ERROR,
       400
     );
   }

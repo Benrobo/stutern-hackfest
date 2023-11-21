@@ -10,13 +10,13 @@ export const createChat = async (payload: any) => {
   return req.data;
 };
 
-export const getSecrets = async () => {
-  const req = await $axios.get("/secret");
+export const getAllChats = async () => {
+  const req = await $axios.get("/chat");
   return req.data;
 };
 
-export const deleteSecret = async (id: string) => {
-  const req = await $axios.delete(`/secret/${id}`);
+export const deleteChatbot = async (id: string) => {
+  const req = await $axios.delete(`/chat/${id}`);
   return req.data;
 };
 

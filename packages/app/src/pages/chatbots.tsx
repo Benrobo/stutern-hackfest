@@ -1,4 +1,5 @@
 import CreateChat from "@/components/Chat/CreateChat";
+import ViewChatBots from "@/components/Chat/ViewChatBots";
 import { FlexColStart } from "@/components/Flex";
 import Layout from "@/components/Layout";
 import React, { useEffect, useState } from "react";
@@ -9,7 +10,7 @@ function Chat() {
   );
 
   return (
-    <Layout activePage="chatbots">
+    <Layout activePage="chatbots" className="overflow-hidden">
       {activeView === "view-chatbots" && (
         <FlexColStart className="w-full px-4 py-4">
           <p className="text-white-100 font-jbEB text-[12px] ">
@@ -27,7 +28,7 @@ function Chat() {
           </p>
         </FlexColStart>
       )}
-      {activeView === "view-chatbots" && null}
+      {activeView === "view-chatbots" && <ViewChatBots />}
       {activeView === "create-chat" && <CreateChat goBack={()=> setActiveView("view-chatbots")} />}
     </Layout>
   );

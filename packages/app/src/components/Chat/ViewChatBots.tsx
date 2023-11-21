@@ -13,26 +13,144 @@ import { Bot, SendHorizonal } from "lucide-react";
 import { Input } from "../ui/input";
 import { cn } from "@/lib/utils";
 import { sleep } from "@/pages/api/utils";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { deleteChatbot, getAllChats } from "@/lib/http/requests";
+import { ResponseData } from "@/types";
+import toast from "react-hot-toast";
+import { Button } from "../ui/button";
+import { Spinner } from "../Spinner";
+
+const messages = [
+  {
+    type: "bot",
+    message: "Hello, how can I help you?",
+  },
+] satisfies Message[];
+
+type Message = {
+  type: "user" | "bot";
+  message: string;
+};
+
+type ChatDetails = {
+  id: string;
+  name: string;
+  agent_name: string;
+  userId: string;
+  createdAt: string;
+};
 
 function ViewChatBots() {
+  const [chatdetails, setChatDetails] = useState<ChatDetails[]>([]);
+  const [selectedChat, setSelectedChat] = useState<ChatDetails | null>(null);
+  const [chatMessages, setChatMessages] = useState<Message[]>(messages);
+  const [usermsg, setUserMsg] = useState<string>("");
+  const getChatQuery = useQuery({
+    queryFn: async () => await getAllChats(),
+    queryKey: ["getAllChats"],
+  });
+  const deleteChatBotMutation = useMutation({
+    mutationFn: async (data: any) => deleteChatbot(data),
+  });
+
+  useEffect(() => {
+    if (getChatQuery.error) {
+      const data = (getChatQuery.error as any)?.response?.data as ResponseData;
+      toast.error(data?.message as string);
+    }
+    if (getChatQuery.data) {
+      const data = getChatQuery.data as ResponseData;
+      const details = data?.data;
+      setChatDetails(details);
+      details.length > 0 ? setSelectedChat(details[0]) : setSelectedChat(null);
+    }
+  }, [getChatQuery.data, getChatQuery.isPending, getChatQuery.error]);
+
+  useEffect(() => {
+    if (deleteChatBotMutation.error) {
+      const data = (deleteChatBotMutation.error as any)?.response
+        ?.data as ResponseData;
+      toast.error(data?.message as string);
+    }
+    if (deleteChatBotMutation.data) {
+      getChatQuery.refetch();
+      deleteChatBotMutation.reset();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    deleteChatBotMutation.data,
+    deleteChatBotMutation.isPending,
+    deleteChatBotMutation.error,
+  ]);
+
   return (
     <FlexColStart className="w-full h-full">
       <FlexRowStartBtw className="w-fit px-4">
-        <select className="w-auto px-3 rounded-md py-2 bg-dark-200 text-white-100 font-jbSB text-[12px]">
-          <option value="">Select created chatbots</option>
+        <select
+          className="w-auto px-3 rounded-md py-2 bg-dark-200 text-white-100 font-jbSB text-[12px] outline-none focus-visible:border-none"
+          onChange={(e) => {
+            const chat = chatdetails.find((c) => c.id === e.target.value);
+            setSelectedChat(chat as ChatDetails);
+          }}
+          disabled={getChatQuery.isPending}
+          value={selectedChat?.id}
+        >
+          <option value="">
+            {getChatQuery.isPending
+              ? "Loading..."
+              : chatdetails.length > 0
+              ? "Select a chatbot"
+              : "No chatbot found"}
+          </option>
+          {chatdetails.map((chat, i) => (
+            <option key={i} value={chat.id}>
+              {chat.name}
+            </option>
+          ))}
         </select>
       </FlexRowStartBtw>
       <FlexRowStartBtw className="w-full h-full gap-2">
-        <FlexColStart className="w-full h-full px-4 border-r-solid border-r-[.5px] border-r-white-600 ">
-          <br />
-          <p className="text-gray-100 font-jbR text-[12px] ">chatbot name</p>
-          <p className="text-white-100 font-jbEB">Againbot</p>
-          <p className="text-gray-100 font-jbR text-[12px] ">agent name</p>
-          <p className="text-white-100 font-jbEB">Agentname</p>
-        </FlexColStart>
-        <FlexStartColCenter className="w-full h-full px-7 py-5 hideScrollBar overflow-y-scroll bg-white-100 pb-9">
-          <FunctionalPreviewChatInterface botName="Benrobo" />
-        </FlexStartColCenter>
+        {selectedChat && (
+          <FlexColStart className="w-full h-full px-4 border-r-solid border-r-[.5px] border-r-white-600 ">
+            <br />
+            <p className="text-gray-100 font-jbR text-[12px] ">chatbot name</p>
+            <p className="text-white-100 font-jbEB">{selectedChat.name}</p>
+            <p className="text-gray-100 font-jbR text-[12px] ">agent name</p>
+            <p className="text-white-100 font-jbEB">
+              {selectedChat.agent_name}
+            </p>
+
+            <br />
+            <Button
+              variant={"destructive"}
+              className="font-jbSB text-[11px] text-white-100 gap-3"
+              onClick={() => {
+                deleteChatBotMutation.mutate(selectedChat?.id);
+              }}
+              disabled={
+                deleteChatBotMutation.isPending || getChatQuery.isPending
+              }
+            >
+              {!deleteChatBotMutation.isPending ? (
+                <Bot size={15} />
+              ) : (
+                <Spinner size={15} />
+              )}
+              Delete chatbot
+            </Button>
+          </FlexColStart>
+        )}
+        {selectedChat && (
+          <FlexStartColCenter className="w-full h-full px-7 py-5 hideScrollBar overflow-y-scroll bg-white-100 pb-9">
+            <FunctionalPreviewChatInterface
+              botName="Benrobo"
+              messages={messages}
+              setUserMsg={setUserMsg}
+              usermsg={usermsg}
+              // botLoading
+            />
+          </FlexStartColCenter>
+        )}
       </FlexRowStartBtw>
     </FlexColStart>
   );
@@ -42,95 +160,21 @@ export default ViewChatBots;
 
 interface IChatProps {
   botName: string;
+  loading?: boolean;
+  botLoading?: boolean;
+  messages: Message[];
+  setUserMsg: React.Dispatch<React.SetStateAction<string>>;
+  usermsg: string;
 }
 
-const messages = [
-  {
-    type: "bot",
-    message: "Hello, how can I help you?",
-  },
-  {
-    type: "user",
-    message: "I'm looking for information on your products.",
-  },
-  {
-    type: "bot",
-    message:
-      "Sure, we have a variety of products. Can you specify the category?",
-  },
-  {
-    type: "user",
-    message: "I'm interested in electronics.",
-  },
-  {
-    type: "bot",
-    message:
-      "Great! We have a wide range of electronic products. Are you looking for something specific like laptops, smartphones, or something else?",
-  },
-  {
-    type: "user",
-    message: "I'm looking for a laptop.",
-  },
-  {
-    type: "bot",
-    message:
-      "We have a variety of laptops. What specifications are you looking for?",
-  },
-  {
-    type: "user",
-    message:
-      "I need a laptop with at least 16GB RAM, an i7 processor, and a 1TB SSD.",
-  },
-  {
-    type: "bot",
-    message:
-      "Sure, we have several laptops that match your specifications. Would you like to see the options?",
-  },
-  {
-    type: "user",
-    message: "Yes, please.",
-  },
-  {
-    type: "bot",
-    message: "Here are some options for you: [Laptop 1, Laptop 2, Laptop 3].",
-  },
-  {
-    type: "user",
-    message: "I like the second option. How much does it cost?",
-  },
-  {
-    type: "bot",
-    message:
-      "Laptop 2 costs $1200. Would you like to proceed with the purchase?",
-  },
-  {
-    type: "user",
-    message: "Yes, I would like to buy it.",
-  },
-  {
-    type: "bot",
-    message: "Great! I'll guide you through the purchase process.",
-  },
-  {
-    type: "user",
-    message: "Thank you.",
-  },
-  {
-    type: "bot",
-    message:
-      "You're welcome! If you have any other questions, feel free to ask.",
-  },
-] satisfies Message[];
-
-type Message = {
-  type: "user" | "bot";
-  message: string;
-};
-
-function FunctionalPreviewChatInterface({ botName }: IChatProps) {
-  const [chatMessages, setChatMessages] = useState<Message[]>(messages);
-  const [usermsg, setUserMsg] = useState<string>("");
-
+function FunctionalPreviewChatInterface({
+  botName,
+  loading,
+  botLoading,
+  messages,
+  setUserMsg,
+  usermsg,
+}: IChatProps) {
   const messageList = useRef(null);
 
   const scrollToBottom = () => {
@@ -145,8 +189,8 @@ function FunctionalPreviewChatInterface({ botName }: IChatProps) {
 
   // add chat messages to state and scroll to bottom
   const addChatMessage = (message: string, type: "user" | "bot") => {
-    const newMessage = { message, type };
-    setChatMessages([...chatMessages, newMessage]);
+    // const newMessage = { message, type };
+    setUserMsg(message);
     scrollToBottom();
   };
 
@@ -158,13 +202,8 @@ function FunctionalPreviewChatInterface({ botName }: IChatProps) {
   }, []);
 
   useEffect(() => {
-    if (chatMessages[chatMessages.length - 1].type === "user") {
-      setTimeout(() => {
-        addChatMessage("Bot reply here", "bot");
-        scrollToBottom();
-      }, 1000);
-    }
-  }, [chatMessages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
 
   return (
     <FlexColStart className="w-full h-auto min-h-[500px] max-h-[500px] max-w-[350px] rounded-lg bg-white-100 shadow-lg drop-shadow-md overflow-hidden relative ">
@@ -181,14 +220,8 @@ function FunctionalPreviewChatInterface({ botName }: IChatProps) {
         className="w-full h-full flex flex-col items-start justify-start gap-3 overflow-y-scroll hideScrollBar px-3 scroll-smooth"
       >
         {/* bot loading */}
-        {/* <FlexRowStartCenter className="px-5 gap-5">
-          <Bot
-            size={25}
-            className="bg-blue-100 p-1 rounded-[50%] text-white-100"
-          />
-          <div className="dot-falling"></div>
-        </FlexRowStartCenter> */}
-        {chatMessages.map((m, i) => {
+
+        {messages.map((m, i) => {
           if (m.type === "user") {
             return (
               <FlexColEnd key={i} className="w-full">
@@ -224,6 +257,16 @@ function FunctionalPreviewChatInterface({ botName }: IChatProps) {
             );
           }
         })}
+
+        {botLoading && (
+          <FlexRowStartCenter className=" gap-5">
+            <Bot
+              size={25}
+              className="bg-blue-100 p-1 rounded-[50%] text-white-100"
+            />
+            <div className="dot-falling"></div>
+          </FlexRowStartCenter>
+        )}
 
         {/* <div style={{ float: "left", clear: "both" }} /> */}
         <div className="pb-[8em]" />

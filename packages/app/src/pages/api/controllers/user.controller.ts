@@ -26,7 +26,7 @@ export default class User {
 
       // cache data
       await redisClient.set(url, JSON.stringify(extractedLinks.links));
-      await redisClient.expire(url, 60 * 30); // expire in 30 minutes
+      await redisClient.expire(url, 60 * 60); // expire in 1hr
     }
 
     sendResponse.success(res, RESPONSE_CODE.SUCCESS, "Links extracted successfully", 200, links);

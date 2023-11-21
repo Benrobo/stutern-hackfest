@@ -12,8 +12,13 @@ datasource db {
 
 
 enum CharDatasource {
-    WEBPAGES
-    PDF
+    webpages
+    file
+}
+
+enum ConversationControl {
+    AI
+    User
 }
 
 model Users {
@@ -25,30 +30,57 @@ model Users {
     image    String
 
     chats Chats[]
+    conversation Conversations[]
 }
 
 model Chats {
     id        String @id @unique @default(uuid())
+    userId   String
     name String
-    title String
-    description String
+    agent_name String
+
     datasource Datasource[]
-    user Users[]
+    user Users @relation(fields: [userId], references: [id])
+    conversation Conversations[]
+
+    @@index([userId])
 }
 
 model Datasource {
     id       String @id @unique @default(uuid())
-    type CharDatasource @default(WEBPAGES)
+    type CharDatasource @default(webpages)
     chatId String
     content String
     embedding  Unsupported("vector")?
 
     chat Chats @relation(fields: [chatId], references: [id])
+    metadata DatasourceMetaData?
+
+    @@index([chatId])
 }
 
-model Inbox {
+model DatasourceMetaData {
+    id String @id @unique @default(uuid())
+    data_source_id String @unique
+    metadata String? @db.Text
+
+    data_source Datasource @relation(fields: [data_source_id], references: [id])
+
+    @@index([data_source_id])
+}
+
+model Conversations {
     id      String @id @unique @default(uuid())
     chatId  String
+    userId  String
+    in_control ConversationControl @default(AI)
+    content String
+
+    chat Chats @relation(fields: [chatId], references: [id])
+    user Users @relation(fields: [userId], references: [id])
+
+    @@index([chatId])
+    @@index([userId])
 }
 
 // psql -h localhost -d test_db -U root -p 5432

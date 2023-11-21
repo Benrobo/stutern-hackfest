@@ -8,3 +8,16 @@ export const createChatSchema = zod.object({
     webpage_url: zod.string().url().optional(),
     type: zod.enum(["webpage", "file"]).optional(),
 })
+
+export const chatConversationSchema = zod.object({
+    message: zod.string({
+        required_error: "Message is required",
+    }).min(1).max(255),
+    chatId: zod.string({
+        required_error: "Active chat is required",
+    }).min(1).max(255),
+    anonymous_id: zod.string({
+        required_error: "Anonymous id is required",
+    }).min(1).max(255).optional(),
+    sender_type: zod.enum(["ANONYMOUS", "AI", "ADMIN"]),
+})

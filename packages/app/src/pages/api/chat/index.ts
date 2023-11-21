@@ -5,7 +5,7 @@ import { isAuthenticated } from "../middleware/auth";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const chatController = new ChatController();
-  if (req.method === "GET") {
+  if (req.method === "POST") {
     await chatController.createChat(req, res);
   }
 }

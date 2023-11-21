@@ -3,10 +3,6 @@ import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
 export default class AIServices {
-  private splitter = new CharacterTextSplitter({
-    chunkSize: 400,
-    chunkOverlap: 50,
-  });
   private embeddings = new OpenAIEmbeddings();
 
   private splitTextIntoChunks(
@@ -36,6 +32,25 @@ export default class AIServices {
     return vectorstores.memoryVectors;
   }
 
+
+  async similaritySearch(text: string, search: string, metadata: object[]) {
+    const splitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 200,
+      chunkOverlap: 1,
+    });
+    const tokens = await splitter.splitText(text as any);
+
+    console.log(tokens.length, search)
+
+    const vectorstores = await MemoryVectorStore.fromTexts(
+      tokens,
+      metadata,
+      this.embeddings
+    );
+    const resultOne = vectorstores.similaritySearch(search, 5);
+    return resultOne;
+  }
+
   async getEmbeddings(text: string, metadata: object[]) {
     const splitter = new RecursiveCharacterTextSplitter({
       chunkSize: 200,
@@ -43,8 +58,7 @@ export default class AIServices {
     });
     const tokens = await splitter.splitText(text as any);
 
-    console.log(tokens.length);
-
+    // MemoryVectorStore.fromExistingIndex();
     const vectorstores = await MemoryVectorStore.fromTexts(
       tokens,
       metadata,

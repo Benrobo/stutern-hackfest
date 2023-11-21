@@ -96,19 +96,19 @@ export default class ChatController {
 
         // create embedding
         const chatId = chat.id;
-
+        
         for (const data of embeddings) {
+          const datasource_id = shortUUID.generate();
           const { content, embedding, metadata } = data;
           const stringifyMetaData = JSON.stringify(metadata);
-          const id = shortUUID.generate();
           // use rawsql query
-          await prisma.$executeRaw`INSERT INTO public."Datasource" (id, type, "chatId", content, embedding) VALUES (${id},${type},${chatId},${content}, ${embedding})`;
+          await prisma.$executeRaw`INSERT INTO public."Datasource" (id, type, "chatId", content, embedding) VALUES (${datasource_id},${type},${chatId},${content}, ${embedding})`;
 
           // create datasourceMetaData
           await prisma.datasourceMetaData.create({
             data: {
               id: shortUUID.generate(),
-              data_source_id: id,
+              data_source_id: datasource_id,
               metadata: stringifyMetaData,
             },
           });

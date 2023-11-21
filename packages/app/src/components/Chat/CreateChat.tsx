@@ -66,6 +66,7 @@ function CreateChat({ goBack }: Props) {
     if (links.length === 0) return true;
     if (botDetails.name === "") return true;
     if (botDetails.agent_name === "") return true;
+    if (createChatMutation.isPending) return true;
     return false;
   };
 
@@ -148,14 +149,14 @@ function CreateChat({ goBack }: Props) {
         <Button
           variant={"primary"}
           className=" text-white-100 gap-3 font-ppB py-2 text-[12px]"
-          disabled={disableButton() ?? createChatMutation.isPending}
+          disabled={disableButton()}
           onClick={handleCreateChat}
         >
           {createChatMutation.isPending ? (
             <Spinner color="#fff" size={15} />
           ) : (
             <Bot className="mr-2" size={20} />
-          )}{" "}
+          )}
           Create Bot
         </Button>
       </FlexRowCenterBtw>

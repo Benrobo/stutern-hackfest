@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import HttpException from "../exception";
 import zodValidation from "../utils/zodValidator";
-import { createChatSchema } from "../utils/validation";
+import { chatConversationSchema, createChatSchema } from "../utils/validation";
 import { RESPONSE_CODE } from "@/types";
 import redisClient from "../config/redis";
 import { extractLinksFromWebPages } from "../utils";
@@ -18,6 +18,13 @@ type CreateChatPayload = {
   fildered_links: string[];
   webpage_url: string;
   type: "webpage" | "file";
+};
+
+type ConversationPayload = {
+  message: string;
+  chatId: string;
+  anonymous_id: string;
+  sender_type: "ANONYMOUS" | "AI" | "ADMIN";
 };
 
 export default class ChatController {
@@ -96,7 +103,7 @@ export default class ChatController {
 
         // create embedding
         const chatId = chat.id;
-        
+
         for (const data of embeddings) {
           const datasource_id = shortUUID.generate();
           const { content, embedding, metadata } = data;
@@ -115,7 +122,155 @@ export default class ChatController {
         }
       }
 
-      return sendResponse.success(res, RESPONSE_CODE.SUCCESS, "Chat created successfully", 200, null)
+      return sendResponse.success(
+        res,
+        RESPONSE_CODE.SUCCESS,
+        "Chat created successfully",
+        200,
+        null
+      );
+    }
+  }
+
+  async getChats(req: NextApiRequest, res: NextApiResponse) {
+    const userId = (req as any).user?.id;
+
+    const chats = await prisma.chats.findMany({
+      where: {
+        user: { id: userId },
+      },
+    });
+
+    return sendResponse.success(
+      res,
+      RESPONSE_CODE.SUCCESS,
+      "Chats retrieved successfully",
+      200,
+      chats
+    );
+  }
+
+  async deleteChat(req: NextApiRequest, res: NextApiResponse) {
+    const userId = (req as any).user?.id;
+    const { chat_id } = req.query;
+
+    const chat = await prisma.chats.findFirst({
+      where: {
+        id: chat_id as string,
+        user: { id: userId },
+      },
+    });
+
+    if (!chat) {
+      throw new HttpException(
+        "Chat not found",
+        RESPONSE_CODE.CHAT_NOT_FOUND,
+        400
+      );
+    }
+
+    await prisma.chats.delete({
+      where: {
+        id: chat_id as string,
+      },
+    });
+
+    return sendResponse.success(
+      res,
+      RESPONSE_CODE.SUCCESS,
+      "Chat deleted successfully",
+      200,
+      null
+    );
+  }
+
+  async getUserConversations() {}
+
+  async getAnonymousConversations() {}
+
+  // conversations are mean't to be created/started only from anonymous users
+  async chatConversation(req: NextApiRequest, res: NextApiResponse) {
+    const payload = req.body as ConversationPayload;
+
+    // validate
+    const _validated = await zodValidation(chatConversationSchema, req, res);
+    if (!_validated) {
+      throw new HttpException(
+        "Invalid conversation payload",
+        RESPONSE_CODE.VALIDATION_ERROR,
+        400
+      );
+    }
+
+    const { message, chatId, anonymous_id } = payload;
+
+    // check if chat exists
+    const chat = await prisma.chats.findFirst({
+      where: { id: chatId },
+    });
+
+    if (!chat) {
+      throw new HttpException(
+        "Chat not found",
+        RESPONSE_CODE.CHAT_NOT_FOUND,
+        400
+      );
+    }
+
+
+    // check if conversation exists, if not create one
+    let _conversation = await prisma.conversations.findFirst({
+      where: {
+        AND: { chatId, anonymous_id },
+      },
+    });
+
+    const chatUserId = chat.userId;
+    let conversation_id = _conversation?.id || "";
+    let _anonymous_id = _conversation?.anonymous_id || "";
+
+    // create conversation if it doesn't exist
+    if (!_conversation || _conversation.anonymous_id !== anonymous_id) {
+      // create conversation
+      conversation_id = shortUUID.generate();
+      _anonymous_id = anonymous_id ?? shortUUID.generate();
+      await prisma.conversations.create({
+        data: {
+          id: conversation_id,
+          chatId,
+          anonymous_id: _anonymous_id,
+          userId: chatUserId,
+        },
+      });
+    }
+
+    // get datasource, metadata, embeddings
+    // const datasource = await prisma.datasource.findMany({
+    //   where: {
+    //     chatId,
+    //   },
+    //   include:{
+    //     metadata: true,
+    //   }
+    // });
+
+    // turn the above findMany into a single query
+    const datasource =
+      await prisma.$queryRaw`SELECT id, type, "chatId", content, embedding::text, "createdAt" FROM public."Datasource" WHERE "chatId" = ${chatId}`;
+
+
+    
+    res.json(datasource)
+
+    // ADMIN
+    if ((req as any).user?.id) {
+      // handle admin conversation
+    } else {
+      // handle anonymous conversation
+
+
+
+      // get ai response based on that
     }
   }
 }

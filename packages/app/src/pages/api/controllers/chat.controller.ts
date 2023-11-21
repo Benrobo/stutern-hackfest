@@ -36,6 +36,21 @@ export default class ChatController {
 
     const { agent_name, type, fildered_links, name, webpage_url } = payload;
 
+    // check if chat with same name exists
+    const chat = await prisma.chats.findFirst({
+      where: {
+        name,
+      },
+    });
+
+    if (chat) {
+      throw new HttpException(
+        "Chat with same name already exists",
+        RESPONSE_CODE.VALIDATION_ERROR,
+        400
+      );
+    }
+
     if (type === "webpage") {
       // check if cache data exists
       let links: { url: string; content: string }[] | any[] = [];

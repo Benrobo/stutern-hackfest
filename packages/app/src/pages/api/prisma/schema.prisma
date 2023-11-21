@@ -40,20 +40,24 @@ model Chats {
     agent_name String
 
     datasource Datasource[]
-    user Users @relation(fields: [userId], references: [id])
+    user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
     conversation Conversations[]
+
+    createdAt DateTime @default(now())
 
     @@index([userId])
 }
 
 model Datasource {
     id       String @id @unique @default(uuid())
-    type CharDatasource @default(webpages)
+    type String @default("webpages")
     chatId String
     content String
     embedding  Unsupported("vector")?
 
-    chat Chats @relation(fields: [chatId], references: [id])
+    createdAt DateTime @default(now())
+
+    chat Chats @relation(fields: [chatId], references: [id], onDelete: Cascade)
     metadata DatasourceMetaData?
 
     @@index([chatId])
@@ -64,7 +68,9 @@ model DatasourceMetaData {
     data_source_id String @unique
     metadata String? @db.Text
 
-    data_source Datasource @relation(fields: [data_source_id], references: [id])
+    createdAt DateTime @default(now())
+
+    data_source Datasource @relation(fields: [data_source_id], references: [id], onDelete: Cascade)
 
     @@index([data_source_id])
 }
@@ -76,8 +82,10 @@ model Conversations {
     in_control ConversationControl @default(AI)
     content String
 
-    chat Chats @relation(fields: [chatId], references: [id])
-    user Users @relation(fields: [userId], references: [id])
+    createdAt DateTime @default(now())
+
+    chat Chats @relation(fields: [chatId], references: [id], onDelete: Cascade)
+    user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@index([chatId])
     @@index([userId])

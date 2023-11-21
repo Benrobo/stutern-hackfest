@@ -195,12 +195,12 @@ function FunctionalPreviewChatInterface({ botName }: IChatProps) {
                 <FlexRowCenterBtw className="w-fit">
                   <FlexColStart
                     className={
-                      "w-fit max-w-[200px] px-4 py-2 h-auto rounded-lg bg-blue-100"
+                      "w-fit max-w-[200px] px-2 py-2 h-auto rounded-lg bg-blue-100 break-words overflow-hidden"
                     }
                   >
-                    <span className="text-white-100 text-[11px] font-ppR ">
+                    <p className="text-white-100 h-auto text-[11px] font-ppR break-all ">
                       {m.message}
-                    </span>
+                    </p>
                   </FlexColStart>
                 </FlexRowCenterBtw>
               </FlexColEnd>
@@ -214,9 +214,9 @@ function FunctionalPreviewChatInterface({ botName }: IChatProps) {
                     className="bg-blue-100 p-1 rounded-[50%] text-white-100"
                   />
                   <FlexColStart className={"w-fit"}>
-                    <span className="text-dark-200 text-[11px] font-ppR w-fit max-w-[200px] px-4 py-2 h-auto rounded-lg bg-white-500 leading-[15px] ">
+                    <div className="text-dark-200 text-[11px] font-ppR w-fit max-w-[200px] px-4 py-2 h-auto rounded-lg bg-white-500 leading-[15px] whitespace-wrap ">
                       {m.message}
-                    </span>
+                    </div>
                     {/* <span className="text-dark-300 font-jbB text-[8px] leadine-none">1hr ago</span> */}
                   </FlexColStart>
                 </FlexRowStartBtw>
@@ -226,7 +226,7 @@ function FunctionalPreviewChatInterface({ botName }: IChatProps) {
         })}
 
         {/* <div style={{ float: "left", clear: "both" }} /> */}
-        <div className="pb-[9em]" />
+        <div className="pb-[8em]" />
       </FlexColStart>
 
       {/* Bottom Section */}

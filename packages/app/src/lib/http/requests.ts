@@ -5,8 +5,8 @@ export const extractLinks = async (data: any) => {
   return req.data;
 };
 
-export const createSecret = async (payload: any) => {
-  const req = await $axios.post("/secret", payload);
+export const createChat = async (payload: any) => {
+  const req = await $axios.post("/chat", payload);
   return req.data;
 };
 

@@ -245,22 +245,26 @@ export default class ChatController {
     }
 
     // get datasource, metadata, embeddings
-    // const datasource = await prisma.datasource.findMany({
-    //   where: {
-    //     chatId,
-    //   },
-    //   include:{
-    //     metadata: true,
-    //   }
-    // });
-
-    // turn the above findMany into a single query
     const datasource =
       await prisma.$queryRaw`SELECT id, type, "chatId", content, embedding::text, "createdAt" FROM public."Datasource" WHERE "chatId" = ${chatId}`;
 
-
+    let combContent = "";
+    const metadata : any[] = [];
+    for (const data of datasource as any) {
+      combContent += data.content;
+      const _metadata = await prisma.datasourceMetaData.findFirst({
+        where: {
+          data_source_id: data.id,
+        },
+      });
+      if (_metadata) {
+        metadata.push(JSON.parse(_metadata?.metadata as string));
+      }
+    }
     
-    res.json(datasource)
+    const similarity = await aiServices.similaritySearch(combContent, message, metadata);
+
+    res.json(similarity);
 
     // ADMIN
     if ((req as any).user?.id) {

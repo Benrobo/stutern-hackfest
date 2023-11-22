@@ -88,6 +88,7 @@ model Messages {
     message String
     sender_type SenderType
     conversation_id String
+    metadata String?
     createdAt DateTime @default(now())
 
     conversation Conversations @relation(fields: [conversation_id], references: [id], onDelete: Cascade)

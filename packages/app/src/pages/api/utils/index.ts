@@ -74,8 +74,8 @@ export async function extractLinksFromWebPages(url: string) {
             .trim(); // Trim leading and trailing whitespaces
 
             _links.push({
-                url: _url,
-                content: textContent
+              url: _url,
+              content: textContent
             })
         });
       })

@@ -27,6 +27,18 @@ type ConversationPayload = {
   sender_type: "ANONYMOUS" | "AI" | "ADMIN";
 };
 
+type SimilaritiesResult = {
+  match_embeddings: {
+    id: string;
+    content: string[];
+    metadata: {
+      url: string | null;
+      content: string | null;
+    };
+    similarity: number;
+  };
+};
+
 export default class ChatController {
   async createChat(req: NextApiRequest, res: NextApiResponse) {
     const userId = (req as any).user?.id;
@@ -83,10 +95,7 @@ export default class ChatController {
       }
 
       // retrieve webpage embeddings
-      const embeddings = await aiServices.retrieveWebPageEmbeddings(
-        content,
-        links
-      );
+      const embeddings = await aiServices.retrieveEmbeddings(content, links);
 
       if (embeddings.length > 0) {
         // create chat first
@@ -107,7 +116,6 @@ export default class ChatController {
         for (const data of embeddings) {
           const datasource_id = shortUUID.generate();
           const { content, embedding, metadata } = data;
-          const stringifyMetaData = JSON.stringify(metadata);
           // use rawsql query
           await prisma.$executeRaw`INSERT INTO public."Datasource" (id, type, "chatId", content, embedding) VALUES (${datasource_id},${type},${chatId},${content}, ${embedding})`;
 
@@ -116,19 +124,29 @@ export default class ChatController {
             data: {
               id: shortUUID.generate(),
               data_source_id: datasource_id,
-              metadata: stringifyMetaData,
+              metadata: JSON.stringify({
+                url: metadata.url ?? null,
+                content: null,
+              }),
             },
           });
         }
-      }
 
-      return sendResponse.success(
-        res,
-        RESPONSE_CODE.SUCCESS,
-        "Chat created successfully",
-        200,
-        null
-      );
+        return sendResponse.success(
+          res,
+          RESPONSE_CODE.SUCCESS,
+          "Chat created successfully",
+          200,
+          null
+        );
+      } else {
+        console.log(`[ERROR] No embeddings found for ${webpage_url}`);
+        throw new HttpException(
+          "Something went wrong. Please try again later",
+          RESPONSE_CODE.INTERNAL_SERVER_ERROR,
+          400
+        );
+      }
     }
   }
 
@@ -217,7 +235,6 @@ export default class ChatController {
       );
     }
 
-
     // check if conversation exists, if not create one
     let _conversation = await prisma.conversations.findFirst({
       where: {
@@ -244,37 +261,110 @@ export default class ChatController {
       });
     }
 
-    // get datasource, metadata, embeddings
-    const datasource =
-      await prisma.$queryRaw`SELECT id, type, "chatId", content, embedding::text, "createdAt" FROM public."Datasource" WHERE "chatId" = ${chatId}`;
-
-    let combContent = "";
-    const metadata : any[] = [];
-    for (const data of datasource as any) {
-      combContent += data.content;
-      const _metadata = await prisma.datasourceMetaData.findFirst({
-        where: {
-          data_source_id: data.id,
-        },
-      });
-      if (_metadata) {
-        metadata.push(JSON.parse(_metadata?.metadata as string));
-      }
-    }
-    
-    const similarity = await aiServices.similaritySearch(combContent, message, metadata);
-
-    res.json(similarity);
-
     // ADMIN
     if ((req as any).user?.id) {
       // handle admin conversation
     } else {
       // handle anonymous conversation
 
+      const tmpCache: Record<string, any> = {};
+      let embeddings: number[] = [];
 
+      if (tmpCache[message]) {
+        embeddings = tmpCache[message];
+      } else {
+        const resp = await aiServices.retrieveEmbeddings(message, {});
+        embeddings = resp[0].embedding;
+      }
 
-      // get ai response based on that
+      const embeddingsString = `[${embeddings}]`;
+      const similarities = (await prisma.$queryRaw`
+      SELECT match_embeddings(
+        ${embeddingsString},
+        0.2,
+        5
+      )::json;
+    `) satisfies SimilaritiesResult[];
+      const _similarities = [];
+
+      for (const sim of similarities) {
+        const _similarity = sim.match_embeddings;
+        const combinedContent = _similarity.content.join(" ");
+        _similarities.push({
+          id: _similarity.id,
+          content: combinedContent,
+          metadata: _similarity.metadata,
+          similarity: _similarity.similarity,
+        });
+      }
+
+      const highest_similarity_search = _similarities.slice(0, 2);
+
+      // combined highest content with newline
+      const combinedContent = highest_similarity_search
+        .map((sim) => sim.content)
+        .join("\n");
+
+      const _templates = await aiServices.createPromptTemplate(
+        message,
+        chat.agent_name,
+        combinedContent,
+        chat.name
+      );
+
+      const aiResponse = await aiServices._webChatComplition(
+        _templates[0]?.content as string,
+        message
+      );
+
+      // get metadata content or url if exists
+      const metadata = highest_similarity_search.map((sim) => sim.metadata).filter(s => s.url);
+      
+      const _metadata = metadata.length > 0 ? metadata[0].url : null;
+
+      // create messages (anonymous, ai)
+      // create anonymous conversation first
+      // check if airesponse exists, else add a custom error message
+
+      const _anonymousMsgCreated =  await prisma.messages.create({
+        data: {
+          message,
+          sender_type: "ANONYMOUS",
+          conversation_id,
+        },
+      });
+
+      let aiResponseMsgCreated;
+
+      if(aiResponse && aiResponse.length > 0){
+        aiResponseMsgCreated = await prisma.messages.create({
+          data: {
+            message: aiResponse as string,
+            sender_type: "AI",
+            conversation_id,
+            metadata: _metadata,
+          },
+        });
+      }else{
+        aiResponseMsgCreated = await prisma.messages.create({
+          data: {
+            message: "Sorry, something went wrong. Please try again later.",
+            sender_type: "AI",
+            conversation_id,
+          },
+        });
+      }
+
+      return sendResponse.success(
+        res,
+        RESPONSE_CODE.SUCCESS,
+        "Message sent successfully",
+        200,
+        {
+          anonymous: _anonymousMsgCreated,
+          aiResponse: aiResponseMsgCreated,
+        }
+      );
     }
   }
 }

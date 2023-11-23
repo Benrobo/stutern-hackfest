@@ -16,6 +16,7 @@ import {
   getAllChats,
   getConversationMessages,
   getConversations,
+  takeControl,
 } from "@/lib/http/requests";
 import { cn } from "@/lib/utils";
 import { ResponseData } from "@/types";
@@ -91,6 +92,9 @@ function Conversations() {
   const getConvMessagesMutation = useMutation({
     mutationFn: async (conv_id: string) => getConversationMessages(conv_id),
   });
+  const takeConvControlMut = useMutation({
+    mutationFn: async (conv_id: string) => takeControl(conv_id),
+  });
 
   const messageList = React.useRef(null);
 
@@ -119,7 +123,7 @@ function Conversations() {
       const data = getConvMutation.data as ResponseData;
       const conversations = data.data;
       setConversations(conversations);
-      // conversations?.length > 0 && setSelectedConversation(conversations[0]);
+      conversations?.length > 0 && setSelectedConversation(conversations[0]);
     }
   }, [getConvMutation.data, getConvMutation.isPending, getConvMutation.error]);
 
@@ -138,6 +142,24 @@ function Conversations() {
     getConvMessagesMutation.data,
     getConvMessagesMutation.isPending,
     getConvMessagesMutation.error,
+  ]);
+
+  // take conversation control effect
+  useEffect(() => {
+    if (takeConvControlMut.error) {
+      const data = (takeConvControlMut.error as any)?.response
+        ?.data as ResponseData;
+      toast.error(data?.message as string);
+    }
+    if (takeConvControlMut.data) {
+      // refetch conversations
+      getConvMutation.mutate(selectedChat?.id as string ?? "all");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    takeConvControlMut.data,
+    takeConvControlMut.isPending,
+    takeConvControlMut.error,
   ]);
 
   useEffect(() => {
@@ -247,7 +269,9 @@ function Conversations() {
             <FlexRowCenterBtw className="w-full gap-4 py-2 px-4">
               <FlexColStart className="gap-0">
                 <p className="text-white-400 font-ppSB text-[12px]">ChatBot</p>
-                <p className="text-dark-100 font-ppSB text-[12px]">Apple</p>
+                <p className="text-dark-100 font-ppSB text-[12px]">
+                  {selectedChat?.name}
+                </p>
               </FlexColStart>
               <FlexRowCenterBtw>
                 <button>
@@ -256,8 +280,24 @@ function Conversations() {
                     className="bg-white-400 p-1 rounded-[50%] text-white-100"
                   />
                 </button>
-                <button className="px-3 py-1 rounded-md border-solid border-white-400 font-ppSB text-dark-100 border-[1px] text-[9px] ">
-                  Take control
+                <button
+                  className={cn(
+                    "px-3 py-1 rounded-md border-solid border-white-400 font-ppSB text-dark-100 border-[1px] text-[9px] ",
+                    selectedConversation?.in_control === "AI"
+                      ? "bg-purple-100 text-white-100 border-transparent"
+                      : "bg-orange-100 text-white-100 border-transparent",
+                    takeConvControlMut.isPending ? "opacity-[.5]" : "opacity-1"
+                  )}
+                  onClick={() => {
+                    takeConvControlMut.mutate(
+                      selectedConversation?.id as string
+                    );
+                  }}
+                  disabled={takeConvControlMut.isPending}
+                >
+                  {selectedConversation?.in_control === "AI"
+                    ? "Take control"
+                    : "Release control"}
                 </button>
               </FlexRowCenterBtw>
             </FlexRowCenterBtw>
@@ -273,58 +313,66 @@ function Conversations() {
                 ref={messageList}
                 className="w-full h-full max-h-[550px] overflow-y-scroll hideScrollBar gap-5 px-4 py-4 scroll-smooth"
               >
-                {messages.length > 0 ? messages.map((msg) => {
-                  if (msg.sender_type === "ANONYMOUS") {
-                    return (
-                      <FlexColEnd key={msg.id} className="w-full gap-1">
-                        <FlexRowStartBtw className="w-fit">
-                          <FlexColStart className={"w-fit gap-1"}>
-                            <div className="text-white-100 text-[11px] font-ppSB w-fit max-w-[400px] px-4 py-2 h-auto rounded-lg bg-blue-100 leading-[15px] whitespace-wrap swissai-chat-msg">
-                              <MarkdownRenderer content={msg.message} />
-                            </div>
-                            <p className="text-white-400 font-ppR leading-none text-[10px]">
-                              {/* {dayjs(msg.createdAt).format("hh:mm A")} */}
-                            </p>
-                          </FlexColStart>
-                          <User2
-                            size={25}
-                            className="bg-white-400/20 p-1 rounded-[50%] text-white-100"
-                          />
-                        </FlexRowStartBtw>
-                      </FlexColEnd>
-                    );
-                  } else {
-                    return (
-                      <FlexColStart key={msg.id} className="w-full gap-1">
-                        <FlexRowStartBtw className="w-fit">
-                          <Bot
-                            size={25}
-                            className="bg-blue-100 p-1 rounded-[50%] text-white-100"
-                          />
-                          <FlexColStart className={"w-fit gap-1"}>
-                            <div className="text-dark-200 text-[11px] font-ppSB w-fit max-w-[400px] px-4 py-2 h-auto rounded-lg bg-white-400/20 leading-[15px] whitespace-wrap swissai-chat-msg">
-                              <MarkdownRenderer content={msg.message} />
-                            </div>
-                            <p className="text-white-400 font-ppR leading-none text-[10px]">
-                              {dayjs(msg.createdAt).format("hh:mm A")}
-                            </p>
-                            <FlexRowStart className="w-full">
-                              {msg.metadata && <a target="_blank" href={msg.metadata} className="text-dark-100 underline bg-white-400/20 px-2 py-1 text-[10px] rounded-md ">
-                                {msg.metadata}
-                              </a>}
-                            </FlexRowStart>
-                          </FlexColStart>
-                        </FlexRowStartBtw>
-                      </FlexColStart>
-                    );
-                  }
-                }): 
-                <FlexColCenter className="w-full h-full">
-                  <p className="text-dark-100 font-jbEB text-[12px] ">
-                    No messages
-                  </p>
-                </FlexColCenter>
-                }
+                {messages.length > 0 ? (
+                  messages.map((msg) => {
+                    if (msg.sender_type === "ANONYMOUS") {
+                      return (
+                        <FlexColEnd key={msg.id} className="w-full gap-1">
+                          <FlexRowStartBtw className="w-fit">
+                            <FlexColStart className={"w-fit gap-1"}>
+                              <div className="text-white-100 text-[11px] font-ppSB w-fit max-w-[400px] px-4 py-2 h-auto rounded-lg bg-blue-100 leading-[15px] whitespace-wrap swissai-chat-msg">
+                                <MarkdownRenderer content={msg.message} />
+                              </div>
+                              <p className="text-white-400 font-ppR leading-none text-[10px]">
+                                {dayjs(msg.createdAt).fromNow()}
+                              </p>
+                            </FlexColStart>
+                            <User2
+                              size={25}
+                              className="bg-white-400/20 p-1 rounded-[50%] text-white-100"
+                            />
+                          </FlexRowStartBtw>
+                        </FlexColEnd>
+                      );
+                    } else {
+                      return (
+                        <FlexColStart key={msg.id} className="w-full gap-1">
+                          <FlexRowStartBtw className="w-fit">
+                            <Bot
+                              size={25}
+                              className="bg-blue-100 p-1 rounded-[50%] text-white-100"
+                            />
+                            <FlexColStart className={"w-fit gap-1"}>
+                              <div className="text-dark-200 text-[11px] font-ppSB w-fit max-w-[400px] px-4 py-2 h-auto rounded-lg bg-white-400/20 leading-[15px] whitespace-wrap swissai-chat-msg">
+                                <MarkdownRenderer content={msg.message} />
+                              </div>
+                              <p className="text-white-400 font-ppR leading-none text-[10px]">
+                                {dayjs(msg.createdAt).fromNow()}
+                              </p>
+                              <FlexRowStart className="w-full">
+                                {msg.metadata && (
+                                  <a
+                                    target="_blank"
+                                    href={msg.metadata}
+                                    className="text-dark-100 underline bg-white-400/20 px-2 py-1 text-[10px] rounded-md "
+                                  >
+                                    {msg.metadata}
+                                  </a>
+                                )}
+                              </FlexRowStart>
+                            </FlexColStart>
+                          </FlexRowStartBtw>
+                        </FlexColStart>
+                      );
+                    }
+                  })
+                ) : (
+                  <FlexColCenter className="w-full h-full">
+                    <p className="text-dark-100 font-jbEB text-[12px] ">
+                      No messages
+                    </p>
+                  </FlexColCenter>
+                )}
               </FlexColStart>
 
               <FlexColStart className="w-full bg-white-600 backdrop-blur bg-opacity-85 py-2 px-6 ">

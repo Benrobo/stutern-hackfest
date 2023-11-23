@@ -10,7 +10,9 @@ export default function catchErrors(fn: Function) {
         await fn(req, res)
     } catch (e: any) {
          const code = RESPONSE_CODE[RESPONSE_CODE.INTERNAL_SERVER_ERROR];
-         console.log(`😥 Error [${code}]: ${e?.message}`);
+         console.log("")
+         console.log(`😥 Error [${code}]: ${e?.message} \n`);
+         console.log(e)
         if(e instanceof HttpException){
           return res.status(e.status).json({
             code: e.code,

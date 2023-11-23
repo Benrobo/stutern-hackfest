@@ -338,7 +338,7 @@ function ChatTrainingData({
           links.map((link, i) => (
             <FlexRowCenterBtw className="" key={i}>
               <a href="#" className="text-white-300 text-[12px] font-ppSB">
-                {link?.url.slice(0, 30).concat("...")}
+                {link?.url.slice(0, 50).concat("...")}
               </a>
               <button onClick={() => filterLinks(link.url)}>
                 <X className="text-red-305" size={15} />

@@ -5,7 +5,7 @@ import ChatController from "../../controllers/chat.controller";
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const chatController = new ChatController();
   if (req.method === "POST") {
-    await chatController.chatConversation(req, res);
+    await chatController.anonymousConversation(req, res);
   }
 }
 

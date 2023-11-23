@@ -20,8 +20,13 @@ export const deleteChatbot = async (id: string) => {
   return req.data;
 };
 
-export const updateSecret = async (payload: any) => {
-  const req = await $axios.put(`/secret`, payload);
+export const getConversations = async (query: string) => {
+  const req = await $axios.get(`/chat/conversations?query=${query}`);
+  return req.data;
+};
+
+export const getConversationMessages = async (conv_id: string) => {
+  const req = await $axios.get(`/chat/conversations/messages/${conv_id}`);
   return req.data;
 };
 

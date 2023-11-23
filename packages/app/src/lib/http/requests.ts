@@ -30,8 +30,8 @@ export const getConversationMessages = async (conv_id: string) => {
   return req.data;
 };
 
-export const createProject = async (payload: any) => {
-  const req = await $axios.post(`/project`, payload);
+export const takeControl = async (id: any) => {
+  const req = await $axios.get(`/chat/conversations/${id}`);
   return req.data;
 };
 

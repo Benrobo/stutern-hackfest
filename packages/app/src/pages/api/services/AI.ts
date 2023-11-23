@@ -78,11 +78,16 @@ export default class AIServices {
 
     Additionally, you must only answer and communicate in English language, regardless of the language used by the user.
 
-    """Context""": {contextText}
+    When trying to insert the agent name, make sure it comes out in bold or extrabold format using markdown.
+
+    """Context""": """{contextText}"""
 
     If a user asks a question or initiates a discussion that is not directly related to the domain or context provided, do not provide an answer or engage in the conversation. Instead, politely redirect their focus back to the domain and its related content.
+    
+    Use newline to format the message properly for those who struggle to read long text.
 
-    Answer as markdown (including related code snippets if available):
+    Answer as markdown (including related code snippets if available), This is a must!!!. All answers must be properly formatted in markdown format.
+    :
     `;
 
     const chatPrompt = ChatPromptTemplate.fromMessages([

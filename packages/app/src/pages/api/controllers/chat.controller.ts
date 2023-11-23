@@ -55,6 +55,18 @@ type SimilaritiesResult = {
 };
 
 export default class ChatController {
+  private async getLastMsg(conv_id: string) {
+    const lastMessage = await prisma.messages.findFirst({
+      where: {
+        conversation_id: conv_id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    return lastMessage?.message ?? "";
+  }
+
   async createChat(req: NextApiRequest, res: NextApiResponse) {
     const userId = (req as any).user?.id;
     const payload: CreateChatPayload = req.body;
@@ -217,9 +229,72 @@ export default class ChatController {
     );
   }
 
-  async getUserConversations() {}
+  async getConversations(req: NextApiRequest, res: NextApiResponse) {
+    const userId = (req as any).user?.id;
+    const chat_query = req.query.query as string;
 
-  async getAnonymousConversations(req: NextApiRequest, res: NextApiResponse) {
+    if (!chat_query || chat_query === "all") {
+      const conversations = await prisma.conversations.findMany({
+        where: {
+          userId,
+        },
+        include: {
+          chat: true,
+        },
+      });
+
+      const _conversations = await Promise.all(
+        conversations.map(async (conv) => {
+          const lastMsg = await this.getLastMsg(conv.id);
+          return {
+            ...conv,
+            lastMessage: lastMsg || "",
+          };
+        })
+      );
+
+      return sendResponse.success(
+        res,
+        RESPONSE_CODE.SUCCESS,
+        "Conversations retrieved successfully",
+        200,
+        _conversations
+      );
+    } else {
+      const conversations = await prisma.conversations.findMany({
+        where: {
+          userId,
+          chatId: chat_query as string,
+        },
+        include: {
+          chat: true,
+        },
+      });
+
+      const _conversations =
+        conversations.length > 0
+          ? await Promise.all(
+              conversations.map(async (conv) => {
+                const lastMsg = await this.getLastMsg(conv.id);
+                return {
+                  ...conv,
+                  lastMessage: lastMsg || "",
+                };
+              })
+            )
+          : [];
+
+      return sendResponse.success(
+        res,
+        RESPONSE_CODE.SUCCESS,
+        "Conversations retrieved successfully",
+        200,
+        _conversations
+      );
+    }
+  }
+
+  async getMessages(req: NextApiRequest, res: NextApiResponse) {
     const { conversation_id } = req.query;
 
     // check if conversation exists
@@ -245,6 +320,7 @@ export default class ChatController {
       orderBy: {
         createdAt: "asc",
       },
+      include: { user: true },
     });
 
     return sendResponse.success(

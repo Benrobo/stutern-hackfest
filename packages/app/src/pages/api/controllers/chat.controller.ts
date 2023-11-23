@@ -104,7 +104,11 @@ export default class ChatController {
       if (urlInfo) {
         links = urlInfo as any;
       } else {
-        const extractedLinks = await extractLinksFromWebPages(webpage_url);
+        // check if url ends with  "/", if it does, remove the ending "/"
+        const _webpage_url = webpage_url.endsWith("/")
+          ? webpage_url.slice(0, -1)
+          : webpage_url;
+        const extractedLinks = await extractLinksFromWebPages(_webpage_url);
         links = extractedLinks.links;
 
         // cache data
@@ -568,5 +572,63 @@ export default class ChatController {
         }
       );
     }
+  }
+
+  async takeControl(req: NextApiRequest, res: NextApiResponse) {
+    const userId = (req as any).user?.id;
+    const { conversation_id } = req.query;
+
+    // check if conversation exists
+    const _conversation = await prisma.conversations.findFirst({
+      where: { id: conversation_id as string },
+    });
+
+    if (!_conversation) {
+      throw new HttpException(
+        "Conversation not found",
+        RESPONSE_CODE.CONVERSATION_NOT_FOUND,
+        404
+      );
+    }
+
+    // check if conversation is in control by user, if it is, reverse the control back to ai.
+
+    if (_conversation.in_control === "User") {
+      // update conversation
+      await prisma.conversations.update({
+        where: {
+          id: conversation_id as string,
+        },
+        data: {
+          in_control: "AI",
+        },
+      });
+
+      return sendResponse.success(
+        res,
+        RESPONSE_CODE.SUCCESS,
+        "Conversation taken successfully",
+        200,
+        null
+      );
+    }
+
+    // update conversation
+    await prisma.conversations.update({
+      where: {
+        id: conversation_id as string,
+      },
+      data: {
+        in_control: "User",
+      },
+    });
+
+    return sendResponse.success(
+      res,
+      RESPONSE_CODE.SUCCESS,
+      "Conversation taken successfully",
+      200,
+      null
+    );
   }
 }

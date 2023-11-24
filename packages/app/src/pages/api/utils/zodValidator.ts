@@ -8,7 +8,8 @@ export default async function zodValidation(
   res: NextApiResponse
 ) {
   try {
-    await schema.parseAsync(req.body ?? req.query);
+    const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    await schema.parseAsync(body ?? req.query);
     return true;
   } catch (error: any) {
     res.status(400).json({

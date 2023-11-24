@@ -1,0 +1,243 @@
+/* @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
+
+.swissai-chat-container {
+    width: 400px;
+    height: auto;
+    position: fixed;
+    bottom: 10em;
+    right: 10px;
+    z-index: 9999;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    /* transition: all 0.3s ease-in-out; */
+    /* transform: translateX(100%); */
+    font-family: 'Poppins', sans-serif;
+}
+
+.swissai-chat-container .swissai-chat-header{
+    width: 100%;
+    height: 60px;
+    background-color: #3B82F6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #eee;
+}
+
+.swissai-chat-container .swissai-chat-header .swissai-chat-header-title{
+    font-size: 18px;
+    font-weight: 900;
+    color: #fff;
+}
+
+.swissai-chat-container .swissai-chat-header .swissai-chat-header-close{
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    outline: none;
+    border: none;
+    color: #fff;
+}
+
+/* swissai chat body */
+.swissai-chat-container .swissai-chat-body{
+    width: 100%;
+    height: 400px;
+    max-height: 400px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.swissai-chat-container .swissai-chat-body .swissai-chat-message-cont{
+    width: 100%;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 5px 0;
+    box-sizing: border-box;
+}
+
+.swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-user{
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    align-items: flex-start;
+    flex-direction: row;
+    justify-items: center;
+    gap: 5px;
+}
+
+.swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-user .swissai-chat-body-user-message-container{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+
+.swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-user .swissai-chat-body-user-message-container .swissai-chat-body-user-message{
+    width: 100%;
+    max-width: 300px;
+    background-color: #3B82F6;
+    border-radius: 10px 0 10px 10px;
+    padding: 2px 20px;
+    box-sizing: border-box;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 300;
+    font-family: 'Poppins', sans-serif;
+    word-wrap: break-word;
+}
+
+/* swissai-chat-message-timestamp */
+.swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-user .swissai-chat-body-user-message-container .swissai-chat-message-timestamp{
+    width: 100%;
+    max-width: 300px;
+    display: flex;
+    align-items: flex-start;
+    justify-items: flex-start;
+    box-sizing: border-box;
+    font-size: 10px;
+    color: #999;
+    font-weight: 100;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* swissai-chat-message-user-avatar */
+.swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-user .swissai-chat-avatar{
+    border-radius: 50%;
+    background-color: #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    padding: 2px;
+    color: #fff;
+    overflow: hidden;
+}
+
+/* AI MESSAGES */
+.swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-ai{
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    align-items: flex-start;
+    flex-direction: row;
+    justify-items: center;
+    gap: 5px;
+}
+
+.swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-ai .swissai-chat-body-ai-message-container{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-ai .swissai-chat-body-ai-message-container .swissai-chat-body-ai-message{
+    width: 100%;
+    max-width: 300px;
+    background-color: #eee;
+    border-radius: 0 10px 10px 10px;
+    padding: 2px 20px;
+    box-sizing: border-box;
+    color: #333;
+    font-size: 12px;
+    font-weight: 300;
+    font-family: 'Poppins', sans-serif;
+    word-wrap: break-word;
+}
+
+/* swissai-chat-message-timestamp */
+.swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-ai .swissai-chat-body-ai-message-container .swissai-chat-message-timestamp{
+    width: 100%;
+    max-width: 300px;
+    display: flex;
+    align-items: flex-start;
+    justify-items: flex-start;
+    box-sizing: border-box;
+    font-size: 10px;
+    color: #999;
+    font-weight: 100;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* swissai-chat-message-user-avatar */
+.swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-ai .swissai-chat-avatar{
+    border-radius: 50%;
+    background-color: #3B82F6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    padding: 2px 3px;
+    color: #fff;
+    overflow: hidden;
+}
+
+
+
+/* chat control input */
+.swissai-chat-container .swissai-chat-control{
+    width: 100%;
+    height: 100px;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-sizing: border-box;
+    border-top: 1px solid #eee;
+}
+
+.swissai-chat-container .swissai-chat-control .swissai-chat-control-input{
+    width: 100%;
+    height: 40px;
+    border-radius: 20px;
+    border: 1px solid #eee;
+    padding: 0 20px;
+    box-sizing: border-box;
+    outline: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    font-family: 'Poppins', sans-serif;
+}
+
+.swissai-chat-container .swissai-chat-control .swissai-chat-control-input:focus{
+    border: 1px solid #3B82F6;
+}
+
+.swissai-chat-container .swissai-chat-control .swissai-chat-control-send{
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    outline: none;
+    border: none;
+    color: #000;
+}

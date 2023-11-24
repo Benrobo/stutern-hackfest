@@ -2,8 +2,9 @@ import { NextApiRequest, NextApiResponse } from "next";
 import HttpException from "../exception";
 import zodValidation from "../utils/zodValidator";
 import {
+  adminReplyToConversationSchema,
   anonymousConversationSchema,
-  assistantConersationSchema,
+  assistantConversationSchema,
   createChatSchema,
 } from "../utils/validation";
 import { RESPONSE_CODE } from "@/types";
@@ -29,6 +30,7 @@ type ConversationPayload = {
   chatId: string;
   anonymous_id: string;
   sender_type: "ANONYMOUS" | "AI" | "ADMIN";
+  conversation_id?: string;
 };
 
 type AnonymousConvPayload = {
@@ -245,6 +247,9 @@ export default class ChatController {
         include: {
           chat: true,
         },
+        orderBy: {
+          createdAt: "desc",
+        },
       });
 
       const _conversations = await Promise.all(
@@ -272,6 +277,9 @@ export default class ChatController {
         },
         include: {
           chat: true,
+        },
+        orderBy: {
+          createdAt: "desc",
         },
       });
 
@@ -337,7 +345,12 @@ export default class ChatController {
   }
 
   async anonymousConversation(req: NextApiRequest, res: NextApiResponse) {
-    const payload = req.body as AnonymousConvPayload;
+    const payload =
+      typeof req.body === "string"
+        ? (JSON.parse(req.body) as AnonymousConvPayload)
+        : (req.body as AnonymousConvPayload);
+
+    
     const _validated = await zodValidation(
       anonymousConversationSchema,
       req,
@@ -415,10 +428,67 @@ export default class ChatController {
     );
   }
 
-  async assistantConversation(req: NextApiRequest, res: NextApiResponse) {
-    const payload = req.body as AsistantConvPayload;
+  async adminReplyToConversation(req: NextApiRequest, res: NextApiResponse) {
+    const userId = (req as any).user?.id;
+    const payload: ConversationPayload = req.body;
     const _validated = await zodValidation(
-      assistantConersationSchema,
+      adminReplyToConversationSchema,
+      req,
+      res
+    );
+
+    if (!_validated) {
+      throw new HttpException(
+        "Invalid conversation payload",
+        RESPONSE_CODE.VALIDATION_ERROR,
+        400
+      );
+    }
+
+    const { message, conversation_id } = payload;
+
+    // check if conversation exists
+    const conversation = await prisma.conversations.findFirst({
+      where:{id: conversation_id}
+    });
+
+    if(!conversation){
+      throw new HttpException(
+        "Invalid conversation payload",
+        RESPONSE_CODE.CONVERSATION_NOT_FOUND,
+        404
+      );
+    }
+
+    // check if conversation is in control by human/user
+    if(conversation.in_control === "AI"){
+      throw new HttpException(
+        "Conversation is in control by AI",
+        RESPONSE_CODE.CONVERSATION_ALREADY_IN_CONTROL,
+        400
+      );
+    }
+
+    // store message
+    await prisma.messages.create({
+      data: {
+        message,
+        sender_type: "ADMIN",
+        conversation_id: conversation_id as string,
+        userId
+      },
+    });
+
+    return sendResponse.success(res, RESPONSE_CODE.SUCCESS, "Message sent successfully", 200, null)
+  }
+
+  async assistantConversation(req: NextApiRequest, res: NextApiResponse) {
+    const payload =
+      typeof req.body === "string"
+        ? (JSON.parse(req.body) as AsistantConvPayload)
+        : (req.body as AsistantConvPayload);
+    const _validated = await zodValidation(
+      assistantConversationSchema,
       req,
       res
     );
@@ -463,15 +533,6 @@ export default class ChatController {
 
     // check if conversation isn't in control by ADMIN
     if (_conversation.in_control === "User") {
-      // ai won't be able to respond, a message saying "please wait for an agent to respond" will be sent
-      await prisma.messages.create({
-        data: {
-          message: "Please wait for an agent to respond",
-          sender_type: "AI",
-          conversation_id,
-        },
-      });
-
       return sendResponse.success(
         res,
         RESPONSE_CODE.SUCCESS,
@@ -629,6 +690,32 @@ export default class ChatController {
       "Conversation taken successfully",
       200,
       null
+    );
+  }
+
+  async isChatValid(req: NextApiRequest, res: NextApiResponse) {
+    const chatId = req.query.chat_id as string;
+    // check if chat exists
+    const chat = await prisma.chats.findFirst({
+      where: {
+        id: chatId,
+      },
+    });
+
+    if (!chat) {
+      throw new HttpException(
+        "Chat not found",
+        RESPONSE_CODE.CHAT_NOT_FOUND,
+        404
+      );
+    }
+
+    return sendResponse.success(
+      res,
+      RESPONSE_CODE.SUCCESS,
+      "Chat is valid",
+      200,
+      chat
     );
   }
 }

@@ -2,30 +2,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   await init();
 });
 
-// messages data
-const messages = [
-  {
-    id: "5b2490b0-af16-4870-94f0-456f4a4568c8",
-    userId: null,
-    message: "what are the features you offer.",
-    sender_type: "ANONYMOUS",
-    conversation_id: "rnwajqKJRuVZyCKwVyA6FM",
-    metadata: null,
-    createdAt: "2023-11-23T11:21:20.471Z",
-    user: null,
-  },
-  {
-    id: "7e63e90d-96e8-4fe2-828f-51da19855966",
-    userId: null,
-    message:
-      "The features offered by Beekeeper Studio include the ability to work across multiple devices, share connections and queries with others, and access a variety of additional features. For a complete list of everything Beekeeper Studio has to offer, you can visit their website at [https://www.beekeeperstudio.io/](https://www.beekeeperstudio.io/)",
-    sender_type: "AI",
-    conversation_id: "rnwajqKJRuVZyCKwVyA6FM",
-    metadata: "https://www.beekeeperstudio.io/get",
-    createdAt: "2023-11-23T11:21:36.496Z",
-    user: null,
-  },
-];
 
 const API_URL = "http://localhost:3000/api/";
 

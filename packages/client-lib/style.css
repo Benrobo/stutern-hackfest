@@ -5,16 +5,23 @@
     width: 400px;
     height: auto;
     position: fixed;
-    bottom: 10em;
+    bottom: 5em;
     right: 10px;
     z-index: 9999;
     border-radius: 10px;
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     overflow: hidden;
-    /* transition: all 0.3s ease-in-out; */
-    /* transform: translateX(100%); */
+    transition: all 0.3s ease-in-out;
     font-family: 'Poppins', sans-serif;
+    transform: scale(0);
+    transform-origin: bottom right;
+}
+
+.swissai-chat-container.visible{
+    transform-origin: bottom right;
+    transition: all 0.3s ease-in-out;
+    transform: scale(1);
 }
 
 .swissai-chat-container .swissai-chat-header{
@@ -63,6 +70,7 @@
     padding: 10px;
     box-sizing: border-box;
     overflow-y: auto;
+    position: relative;
 }
 
 .swissai-chat-container .swissai-chat-body .swissai-chat-message-cont{
@@ -94,7 +102,7 @@
 }
 
 .swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-user .swissai-chat-body-user-message-container .swissai-chat-body-user-message{
-    width: 100%;
+    width: auto;
     max-width: 300px;
     background-color: #3B82F6;
     border-radius: 10px 0 10px 10px;
@@ -121,6 +129,20 @@
     font-family: 'Poppins', sans-serif;
 }
 
+.swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-user .swissai-chat-body-user-message-container .swissai-chat-message-metadata{
+    width: 100%;
+    max-width: 300px;
+    display: flex;
+    align-items: flex-start;
+    justify-items: flex-start;
+    box-sizing: border-box;
+    font-size: 10px;
+    color: #999;
+    font-weight: 100;
+    font-family: 'Poppins', sans-serif;
+}
+
+
 /* swissai-chat-message-user-avatar */
 .swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-user .swissai-chat-avatar{
     border-radius: 50%;
@@ -146,7 +168,7 @@
 }
 
 .swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-ai .swissai-chat-body-ai-message-container{
-    width: 100%;
+    width: auto;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -181,6 +203,27 @@
     font-family: 'Poppins', sans-serif;
 }
 
+.swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-ai .swissai-chat-body-ai-message-container .swiss-chat-message-metadata{
+    width: 100%;
+    max-width: 300px;
+    display: flex;
+    align-items: flex-start;
+    justify-items: flex-start;
+    box-sizing: border-box;
+    font-size: 10px;
+    color: #999;
+    font-weight: 100;
+    font-family: 'Poppins', sans-serif;
+}
+
+.swissai-metadata-link{
+    font-size: 10px;
+    color: #777;
+    padding: 2px 5px;
+    background: #eee;
+    border-radius: 10px;
+}
+
 /* swissai-chat-message-user-avatar */
 .swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-ai .swissai-chat-avatar{
     border-radius: 50%;
@@ -189,9 +232,18 @@
     align-items: center;
     justify-content: center;
     margin-right: 10px;
-    padding: 2px 3px;
+    padding: 4px 4px;
     color: #fff;
     overflow: hidden;
+    transform: scale(.95);
+}
+
+.swissai-chat-container .swissai-chat-body .swissai-chat-message-cont .swissai-chat-body-ai .swissai-chat-admin-avatar{
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
 }
 
 
@@ -227,6 +279,12 @@
     border: 1px solid #3B82F6;
 }
 
+.swissai-chat-container .swissai-chat-control .swissai-chat-control-input.disabled{
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
 .swissai-chat-container .swissai-chat-control .swissai-chat-control-send{
     width: 30px;
     height: 30px;
@@ -240,4 +298,224 @@
     outline: none;
     border: none;
     color: #000;
+}
+
+/* SwissAI feature */
+.swissai-chat-container .swissai-chat-features{
+    width: 100%;
+    height: auto;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content:flex-start;
+    padding: 4px 10px;
+    gap: 10px;
+    box-sizing: border-box;
+    border-top: 1px solid #eee;
+}
+
+.swissai-chat-container .swissai-chat-features .swissai-feature-btn{
+    width: auto;
+    height: 30px;
+    border-radius: 10px;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    border: 1px solid #eee;
+    color: #000;
+}
+
+.swissai-chat-container .swissai-chat-features .swissai-feature-btn:hover{
+    background-color: #eee;
+}
+
+.swissai-chat-container .swissai-chat-features .swissai-feature-btn.disabled{
+    background-color: #eee;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+
+/* chat activator btn */
+.swissai-chat-activator-btn{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #3B82F6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    z-index: 9999;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    outline: none;
+    border: none;
+    color: #fff;
+}
+
+.swissai-chat-activator-btn:hover{
+    background-color: #2563EB;
+}
+
+.swissai-chat-activator-btn:focus{
+    outline: none;
+}
+
+/* Modal Loader */
+.swissai-modal-loader{
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    display: none;
+    backdrop-filter: blur(5px);
+}
+
+.swissai-modal-loader.visible {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+
+/* modal loader spinner */
+.swissai-modal-loader .swissai-spinner{
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 5px solid transparent;
+    border-top: 5px solid #85f3ff;
+    animation: spin .5s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* AI Loading state */
+.swissai-ai-loading-cont {
+    display: none;
+    margin-top: 20px;
+}
+
+.swissai-ai-loading-cont.visible{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.swissai-ai-loading-cont .swissai-chat-avatar{
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background-color: #3B82F6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    padding: 2px 3px;
+    color: #fff;
+    overflow: hidden;
+}
+
+.swissai-loader {
+  position: relative;
+  left: -9999px;
+  width: 8px;
+  height: 8px;
+  border-radius: 5px;
+  background-color: #ccc;
+  color: #ccc;
+  box-shadow: 9999px 0 0 0 #777;
+  animation: swissai-loader 1s infinite linear;
+  animation-delay: 0.1s;
+}
+.swissai-loader::before, .swissai-loader::after {
+  content: "";
+  display: inline-block;
+  position: absolute;
+  top: 0;
+}
+.swissai-loader::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 5px;
+  background-color: #ccc;
+  color: #ccc;
+  animation: swissai-loader-before 1s infinite linear;
+  animation-delay: 0s;
+}
+.swissai-loader::after {
+  width: 8px;
+  height: 8px;
+  border-radius: 5px;
+  background-color: #ccc;
+  color: #ccc;
+  animation: swissai-loader-after 1s infinite linear;
+  animation-delay: 0.2s;
+}
+
+@keyframes swissai-loader {
+  0% {
+    box-shadow: 9999px -15px 0 0 rgba(152, 128, 255, 0);
+  }
+  25%, 50%, 75% {
+    box-shadow: 9999px 0 0 0 #ccc;
+  }
+  100% {
+    box-shadow: 9999px 15px 0 0 rgba(152, 128, 255, 0);
+  }
+}
+@keyframes swissai-loader-before {
+  0% {
+    box-shadow: 9984px -15px 0 0 rgba(152, 128, 255, 0);
+  }
+  25%, 50%, 75% {
+    box-shadow: 9984px 0 0 0 #ccc;
+  }
+  100% {
+    box-shadow: 9984px 15px 0 0 rgba(152, 128, 255, 0);
+  }
+}
+@keyframes swissai-loader-after {
+  0% {
+    box-shadow: 10014px -15px 0 0 rgba(152, 128, 255, 0);
+  }
+  25%, 50%, 75% {
+    box-shadow: 10014px 0 0 0 #ccc;
+  }
+  100% {
+    box-shadow: 10014px 15px 0 0 rgba(152, 128, 255, 0);
+  }
+}
+
+
+/* Empty message */
+.swissai-chat-empty-message{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+}
+
+.swissai-chat-empty-message .swissai-chat-empty-message-text{
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
 }

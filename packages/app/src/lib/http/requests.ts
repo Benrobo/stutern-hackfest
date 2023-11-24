@@ -35,8 +35,8 @@ export const takeControl = async (id: any) => {
   return req.data;
 };
 
-export const getProjects = async () => {
-  const req = await $axios.get(`/project`);
+export const adminReplyToConversation = async (data: any) => {
+  const req = await $axios.post(`/chat/conversations/admin`, data);
   return req.data;
 };
 

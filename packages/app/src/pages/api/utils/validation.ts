@@ -32,11 +32,23 @@ export const anonymousConversationSchema = zod.object({
     .optional(),
 });
 
-export const assistantConersationSchema = zod.object({
+export const assistantConversationSchema = zod.object({
   conversation_id:zod
     .string({
       required_error: "conversation ID is required",
     })
     .min(1)
     .max(255),
+});
+
+export const adminReplyToConversationSchema = zod.object({
+  conversation_id: zod
+    .string({
+      required_error: "conversation ID is required",
+    })
+    .min(1)
+    .max(255),
+  message: zod.string({
+    required_error: "Message is required",
+  }).min(1).max(255),
 });

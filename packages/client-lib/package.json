@@ -1,0 +1,9 @@
+{
+  "name": "swissai",
+  "version": "1.0.1",
+  "description": "",
+  "main": "./lib/index.js",
+  "keywords": [],
+  "author": "Benrobo",
+  "license": "ISC"
+}

@@ -14,10 +14,8 @@ export default async function zodValidation(
   } catch (error: any) {
     res.status(400).json({
       code: RESPONSE_CODE[RESPONSE_CODE.VALIDATION_ERROR],
-      error: {
-        message: error?.issues[0]?.message,
-        error,
-      },
+      message: error?.issues[0]?.message,
+      error: error,
     });
     return false;
   }

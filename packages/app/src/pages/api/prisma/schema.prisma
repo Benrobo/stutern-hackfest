@@ -49,6 +49,7 @@ model Chats {
     datasource Datasource[]
     user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
     conversations Conversations[]
+    escallations EscallatedConversations[]
 
     createdAt DateTime @default(now())
 
@@ -105,6 +106,7 @@ model Conversations {
     anonymous_id String
     chatId String
     userId String
+    customer_email String?
     in_control ConversationControl @default(AI)
 
     createdAt DateTime @default(now())
@@ -117,21 +119,16 @@ model Conversations {
     @@index([userId])
 }
 
-// model Conversations {
-//     id      String @id @unique @default(uuid())
-//     chatId  String
-//     userId  String?
-//     in_control ConversationControl @default(AI)
-//     message String
+model EscallatedConversations {
+    id      String @id @unique @default(uuid())
+    chatId  String
+    customer_email  String
+    customer_name  String
+    createdAt DateTime @default(now())
 
-
-//     createdAt DateTime @default(now())
-
-//     chat Chats @relation(fields: [chatId], references: [id], onDelete: Cascade)
-//     user Users? @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-//     @@index([chatId])
-//     @@index([userId])
-// }
+    chat Chats @relation(fields: [chatId], references: [id], onDelete: Cascade)
+    
+    @@index([chatId])
+}
 
 // psql -h localhost -d test_db -U root -p 5432

@@ -11,7 +11,7 @@ interface SidebarProps {
 function SideBar({ activePage }: SidebarProps) {
   const buttonStyle = (pageName: string, compName: string) => {
     const notActive = "text-gray-100 bg-none",
-      Active = "text-white-100 bg-dark-300",
+      Active = "text-white-100 bg-dark-300 font-jbEB",
       iconActive = "#fff",
       iconNotActive = "#fff";
 
@@ -20,7 +20,7 @@ function SideBar({ activePage }: SidebarProps) {
   };
 
   return (
-    <div className="w-full h-full max-w-[170px] relative border-r-solid border-r-[1px] border-r-dark-400 hideScrollBar py-1 ">
+    <div className="w-full h-full max-w-[180px] relative border-r-solid border-r-[1px] border-r-dark-400 hideScrollBar py-1 ">
       <div className="w-full flex items-center justify-start gap-3 py-2 px-4">
         {/* <Image
           src={"/images/logo/logo.png"}
@@ -29,14 +29,14 @@ function SideBar({ activePage }: SidebarProps) {
           width={45}
           height={0}
         /> */}
-        <span className="font-ppSB text-white-100 text-[1em]">SwissAI</span>
+        <span className="font-jbEB text-white-100 text-[1em]">SwissAI</span>
       </div>
       <div className="w-full mt-5 px-3 flex flex-col items-center justify-center gap-2">
         {/* home item */}
         <Link
           href="/dashboard"
           className={twMerge(
-            "w-full h-auto group px-4 py-3 rounded-[6px]  flex items-center justify-start gap-2 font-ppReg transition ease-in-out text-[14px]",
+            "w-full h-auto group px-4 py-3 rounded-[6px]  flex items-center justify-start gap-2 font-jbSB transition ease-in-out text-[14px]",
             buttonStyle(activePage, "dashboard").btn
           )}
         >
@@ -55,7 +55,7 @@ function SideBar({ activePage }: SidebarProps) {
         <Link
           href="/chatbots"
           className={twMerge(
-            "w-full h-auto group px-4 py-3 rounded-[6px] flex items-center justify-start gap-2 font-ppReg transition ease-in-out text-[14px]",
+            "w-full h-auto group px-4 py-3 rounded-[6px] flex items-center justify-start gap-2 font-jbSB transition ease-in-out text-[14px]",
             buttonStyle(activePage, "chatbots").btn
           )}
         >
@@ -73,7 +73,7 @@ function SideBar({ activePage }: SidebarProps) {
         <Link
           href="/conversations"
           className={twMerge(
-            "w-full h-auto group px-4 py-3 rounded-[6px] flex items-center justify-start gap-2 font-ppReg transition ease-in-out text-[14px]",
+            "w-full h-auto group px-4 py-3 rounded-[6px] flex items-center justify-start gap-2 font-jbSB transition ease-in-out text-[14px]",
             buttonStyle(activePage, "conversations").btn
           )}
         >
@@ -90,21 +90,21 @@ function SideBar({ activePage }: SidebarProps) {
 
         {/* Settings */}
         <Link
-          href="/escallations"
+          href="/chat-supports"
           className={twMerge(
-            "w-full h-auto group px-4 py-3 rounded-[6px] flex items-center justify-start gap-2 font-ppReg transition ease-in-out text-[14px]",
-            buttonStyle(activePage, "settings").btn
+            "w-full h-auto group px-4 py-3 rounded-[6px] flex items-center justify-start gap-2 font-jbSB transition ease-in-out text-[14px]",
+            buttonStyle(activePage, "chat-supports").btn
           )}
         >
           <Users
             size={15}
             className={twMerge(
               "group-hover:text-white-100 text-[11px] ml-1 transition ease-in-out",
-              buttonStyle(activePage, "billing").icon
+              buttonStyle(activePage, "chat-supports").icon
             )}
           />
           <span className="group-hover:text-white-100 text-[11px] ml-1 transition ease-in-out">
-            Escallations
+            Chat Supports
           </span>
         </Link>
       </div>

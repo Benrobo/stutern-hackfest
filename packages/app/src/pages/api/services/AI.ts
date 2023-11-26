@@ -53,7 +53,7 @@ export default class AIServices {
     const resp = await model.invoke([
       ["human", humanMsg],
       ["assistant", assistantMsg],
-    ])
+    ]);
 
     return resp?.content;
   }
@@ -62,8 +62,17 @@ export default class AIServices {
     query: string,
     agentName: string,
     contextText: string,
-    chatName: string
+    chatName: string,
+    prevConversations: { sender_type: "HUMAN" | "ADMIN" | "AI"; message: string }[]
   ) {
+
+    // construct chat history template using prevConversations
+    const chatHistoryTemplate = prevConversations.map((conv) => {
+      return `
+      ${conv.sender_type}: ${conv.message}
+      `;
+    }).join("\n");
+
     const systemTemplate = `
     You are a customer service agent named {agentName} representative who loves
     to help people!
@@ -83,6 +92,10 @@ export default class AIServices {
 
     """Context""": """{contextText}"""
 
+    """Chat History""": """{chatHistoryTemplate}"""
+
+    A chat history is provided to you, you must use it to answer the question at the end if applicable. If it is not applicable or it empty, you can ignore it.
+
     If a user asks a question or initiates a discussion that is not directly related to the domain or context provided, do not provide an answer or engage in the conversation. Instead, politely redirect their focus back to the domain and its related content.
     
     Use newline to format the message properly for those who struggle to read long text.
@@ -101,6 +114,7 @@ export default class AIServices {
       agentName,
       chatName,
       contextText,
+      chatHistoryTemplate,
     });
 
     return formattedChatPrompt;

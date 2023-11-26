@@ -10,6 +10,7 @@ import { Theme } from "@radix-ui/themes";
 import { ClerkProvider } from "@clerk/nextjs";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Router } from "next/router";
+// @ts-ignore
 import nProgress from "nprogress";
 import "../styles/nprogress.css";
 

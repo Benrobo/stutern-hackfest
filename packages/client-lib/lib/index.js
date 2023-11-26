@@ -3,7 +3,8 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-const API_URL = "http://localhost:3000/api/";
+// const API_URL = "http://localhost:3000/api/";
+const API_URL = "https://swissai.vercel.app/api/";
 
 async function init() {
   injectThirdPartyScript();

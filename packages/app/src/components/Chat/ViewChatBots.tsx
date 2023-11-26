@@ -123,7 +123,7 @@ function ViewChatBots() {
             </p>
 
             <br />
-            <p className="text-white-100 font-jbSB text-[11px] ">
+            <p className="text-white-300 font-jbSB text-[11px] ">
               To add the Chat bubble at the corner of your website, paste the
               following JavaScript snippet into the{" "}
               <span className="text-orange-100">{"<head>"}</span> tag of your

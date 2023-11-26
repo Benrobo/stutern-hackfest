@@ -133,7 +133,16 @@ async function init() {
   // check if user info has been collected, disable it every 1ms
   setInterval(()=>{
     disableCollectingUserInfo();
-  },1000)
+  },1000);
+
+  // fetch conversations every 3ms
+  setInterval(async ()=>{
+    const conv_id = localStorage.getItem("@swissai-conversation-id") ?? null;
+    if(conv_id){
+      // const conv = await fetchConversations(conv_id);
+      // appendChatMessages(conv);
+    }
+  },10000)
 
 
 
@@ -184,9 +193,6 @@ async function fetchConversations(conversation_id) {
       `${API_URL}chat/conversations/messages/${conversation_id}`
     );
     const res = await req.json();
-
-    console.log(res.data);
-
     const data = res.data;
     return data;
   } catch (err) {
@@ -607,8 +613,6 @@ function appendChatMessages(messages) {
           .replace("{message}", marked.parse(message.message))
           .replace("{timestamp}", "an hr ago")
           .replace("{metadata}", "");
-
-        console.log(adminMsg)
         chatBody.innerHTML += adminMsg;
       }
 

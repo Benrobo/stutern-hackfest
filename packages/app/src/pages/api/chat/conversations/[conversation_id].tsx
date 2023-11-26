@@ -8,6 +8,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     await chatController.takeControl(req, res);
   }
+  if (req.method === "DELETE") {
+    await chatController.deleteConversation(req, res);
+  }
 }
 
 export default catchErrors(isAuthenticated(handler));

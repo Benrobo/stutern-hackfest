@@ -57,5 +57,8 @@
   },
   "prisma": {
     "schema": "./src/pages/api/prisma/schema.prisma"
+  },
+  "devDependencies": {
+    "@types/nprogress": "^0.2.3"
   }
 }

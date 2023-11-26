@@ -144,9 +144,35 @@
         <button class="swissai-feature-btn swissai-user-details" name="user-info">
           👋 enter your info
         </button>
-        <button class="swissai-feature-btn swissai-schedule-meeting" name="schedule-meeting">
-          🤙 schedule a meeting
+        <button class="swissai-feature-btn swissai-human-support" name="schedule-meeting">
+          🔔 Requests human support
         </button>
+      </div>
+
+      <!-- chat escallation modal -->
+      <div class="swissai-chat-escallation-cont">
+        <div class="escallation-head">
+            🔔
+            <h2>Are you sure you want to escalate the chat to human support?</h2>
+            <p>Our support team will get back to you as soon as they can via email.</p>
+        </div>
+        <div class="escallation-form">
+            <input type="text" name="name" class="input" placeholder="Enter your name" />
+            <input type="text" name="email" class="input" placeholder="Enter your email address" />
+            <button class="swissai-escallation-btn continue">Yes, Continue</button>
+            <button class="swissai-escallation-btn cancel">No, Thanks</button>
+        </div>
+      </div>
+
+      <!-- user info modal -->
+      <div class="swissai-userinfo-cont visible">
+        <div class="userinfo-head">
+            <h2>Let us know how to contact you</h2>
+        </div>
+        <div class="userinfo-form">
+            <input type="text" class="input" placeholder="Enter your email address" />
+            <button class="swissai-userinfo-btn">Send</button>
+        </div>
       </div>
       
       <!-- chat control input -->
@@ -183,13 +209,13 @@
     //   marked.parse("```js\nconsole.log('hello world')\n```");
 
     // toggle the chat-container visibility class
-    // document
-    //   .querySelector(".swissai-chat-activator-btn")
-    //   .addEventListener("click", () => {
-    //     document
-    //       .querySelector(".swissai-chat-container")
-    //       .classList.toggle("visible");
-    //   });
+    document
+      .querySelector(".swissai-chat-activator-btn")
+      .addEventListener("click", () => {
+        document
+          .querySelector(".swissai-chat-container")
+          .classList.toggle("visible");
+      });
   </script>
   </body>
 </html>

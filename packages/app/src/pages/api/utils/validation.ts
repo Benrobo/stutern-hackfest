@@ -52,3 +52,18 @@ export const adminReplyToConversationSchema = zod.object({
     required_error: "Message is required",
   }).min(1).max(255),
 });
+
+export const collectUserInfoSchema = zod.object({
+  email: zod.string().email({
+    message: "Invalid email address provided",
+  }),
+  conversation_id: zod.string().min(1).max(255),
+});
+
+export const escallateChatSchema = zod.object({
+  email: zod.string().email({
+    message: "Invalid email address provided",
+  }),
+  name: zod.string(),
+  chatId: zod.string().min(1).max(255),
+});

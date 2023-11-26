@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useUser } from "@clerk/nextjs";
 import { BrainCircuit, Clock4, GaugeCircle } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+
 
 export default function Home() {
   const {user, isLoaded} = useUser();
@@ -37,11 +37,11 @@ export default function Home() {
             Efficiency and Client Satisfaction.
           </p>
           <br />
-          <a href="/auth">
+          <button onClick={() => (window.location.href = "/auth")}>
             <Button className="w-auto px-6 font-jbEB" variant={"primary"}>
               Try for free
             </Button>
-          </a>
+          </button>
         </FlexColStart>
         <Image
           src={"/images/header1.png"}

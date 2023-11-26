@@ -1,6 +1,5 @@
 
 import { NextApiRequest, NextApiResponse } from "next";
-import { NextResponse } from "next/server";
 import HttpException from "../exception";
 import { RESPONSE_CODE } from "@/types";
 

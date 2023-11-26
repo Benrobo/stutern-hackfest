@@ -15,6 +15,7 @@ function Layout({ children, activePage, className }: LayoutProps) {
 
   useEffect(() => {
     setActivePage(activePage);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePage]);
 
   return (

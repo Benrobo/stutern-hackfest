@@ -41,6 +41,7 @@ export function ComponentLayout({
     "conversations",
     "chatbots",
     "settings",
+    "chat-supports",
   ];
 
   useEffect(() => {

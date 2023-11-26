@@ -308,6 +308,29 @@ export default class ChatController {
     }
   }
 
+  async deleteConversation(req: NextApiRequest, res: NextApiResponse){
+    const userId = (req as any).user?.id;
+    const conversation_id = req.query.conversation_id as string;
+
+    // check if conversation exists
+    const conversation = await prisma.conversations.findFirst({
+      where: {
+        id: conversation_id,
+        userId,
+      }
+    });
+
+    if(!conversation){
+      throw new HttpException("conversation notfound", RESPONSE_CODE.CONVERSATION_NOT_FOUND, 404);
+    }
+
+    await prisma.conversations.delete({
+      where:{id: conversation_id}
+    })
+
+    sendResponse.success(res, RESPONSE_CODE.SUCCESS, "conversation deleted", 200)
+  }
+
   async getMessages(req: NextApiRequest, res: NextApiResponse) {
     const { conversation_id } = req.query;
 
@@ -589,11 +612,30 @@ export default class ChatController {
         .map((sim) => sim.content)
         .join("\n");
 
+      // get prev conversations in form of user and ai
+      const prevConversations = await prisma.messages.findMany({
+        where: {
+          conversation_id: conversation_id as string,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      });
+
+      const _prevConversations = prevConversations.map((conv) => {
+        return {
+          message: conv.message,
+          sender_type: conv.sender_type === "ANONYMOUS" ? "HUMAN" : conv.sender_type,
+        };
+      });
+
+
       const _templates = await aiServices.createPromptTemplate(
         anonymous_message,
         _conversation.chat.agent_name,
         combinedContent,
-        _conversation.chat.name
+        _conversation.chat.name,
+        _prevConversations as any
       );
 
       const aiResponse = await aiServices._webChatComplition(
@@ -727,7 +769,8 @@ export default class ChatController {
   }
 
   async collectUserInfo(req: NextApiRequest, res: NextApiResponse) {
-    const payload = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    const payload =
+      typeof req.body === "string" ? JSON.parse(req.body) : req.body;
     const _validated = await zodValidation(collectUserInfoSchema, req, res);
     if (!_validated) {
       throw new HttpException(
@@ -772,8 +815,8 @@ export default class ChatController {
   }
 
   async escallateConversation(req: NextApiRequest, res: NextApiResponse) {
-   const payload =
-     typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    const payload =
+      typeof req.body === "string" ? JSON.parse(req.body) : req.body;
     const _validated = await zodValidation(escallateChatSchema, req, res);
     if (!_validated) {
       throw new HttpException(
@@ -801,14 +844,13 @@ export default class ChatController {
     }
 
     // check if customer email exists in EscallatedConversations
-    const escallatedConversation = await prisma.escallatedConversations.findFirst(
-      {
+    const escallatedConversation =
+      await prisma.escallatedConversations.findFirst({
         where: {
           chatId: chatId,
           customer_email: email,
         },
-      }
-    );
+      });
 
     if (escallatedConversation) {
       return sendResponse.success(
@@ -835,6 +877,49 @@ export default class ChatController {
       "Your chat is now being handled by our human support team. They will be with you shortly",
       200,
       null
+    );
+  }
+
+  async getEscallatedConversations(req: NextApiRequest, res: NextApiResponse) {
+    const userId = (req as any).user?.id;
+    const { chat_id } = req.query;
+
+    const escallatedConversations =
+      await prisma.escallatedConversations.findMany({
+        where: {
+          chat: {
+            id: chat_id as string,
+            user: {
+              id: userId,
+            },
+          },
+        },
+      });
+
+    // include chat agent name in response
+    const _escallatedConversations = await Promise.all(
+      escallatedConversations.map(async (conv) => {
+        const chat = await prisma.chats.findFirst({
+          where: {
+            id: conv.chatId,
+          },
+        });
+        return {
+          ...conv,
+          chat: {
+            ...chat,
+            agent_name: chat?.agent_name ?? "",
+          },
+        };
+      })
+    );
+
+    return sendResponse.success(
+      res,
+      RESPONSE_CODE.SUCCESS,
+      "Escallated conversation retrieved successfully",
+      200,
+      _escallatedConversations
     );
   }
 }

@@ -106,19 +106,38 @@ export default class ChatController {
       let links: { url: string; content: string }[] | any[] = [];
       const urlInfo = await redisClient.get(webpage_url);
       if (urlInfo) {
-        links = urlInfo as any;
+        // use the filtered links if it exists. the links within the filtered links array is meant to be used if user tries including links that shouldn't be included
+
+        if (fildered_links && fildered_links.length > 0) {
+          const _links = (urlInfo as any[]).filter((link: any) => {
+            return fildered_links.includes(link.url);
+          });
+          links = _links;
+        } else {
+          links = urlInfo as any;
+        }
       } else {
         // check if url ends with  "/", if it does, remove the ending "/"
         const _webpage_url = webpage_url.endsWith("/")
           ? webpage_url.slice(0, -1)
           : webpage_url;
         const extractedLinks = await extractLinksFromWebPages(_webpage_url);
-        links = extractedLinks.links;
+
+        // use the filtered links if it exists. the links within the filtered links array is meant to be used if user tries including links that shouldn't be included
+
+        if (fildered_links && fildered_links.length > 0) {
+          const _links = extractedLinks.links.filter((link: any) => {
+            return fildered_links.includes(link.url);
+          });
+          links = _links;
+        } else {
+          links = extractedLinks.links;
+        }
 
         // cache data
         await redisClient.set(
           webpage_url,
-          JSON.stringify(extractedLinks.links)
+          JSON.stringify(links)
         );
         await redisClient.expire(webpage_url, 60 * 60); // expire in 1hr minutes
       }
@@ -128,6 +147,7 @@ export default class ChatController {
       for (const link of links) {
         content += link.content;
       }
+
 
       // retrieve webpage embeddings
       const embeddings = await aiServices.retrieveEmbeddings(content, links);

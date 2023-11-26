@@ -8,7 +8,8 @@ import { RESPONSE_CODE } from "@/types";
 export async function extractLinksFromWebPages(url: string) {
   try {
     // Fetch HTML content of the main page
-    const response = await axios.get(url);
+    const modifiedUrl = url.endsWith("/") ? url.slice(0, -1) : url;
+    const response = await axios.get(modifiedUrl);
     const html = response.data;
 
     // Use Puppeteer to execute JavaScript and retrieve dynamic content
@@ -29,15 +30,15 @@ export async function extractLinksFromWebPages(url: string) {
           !link.includes("https") &&
           link.startsWith("/") &&
           !link.includes("#")
-      )
-      .slice(0, 5);
+      ).slice(0,8) // only scrape 8 links
 
     // Fetch links content
-    // const urlMap = new Map();
     const _links = [] as any;
+
+    // include the homepage url along side.
     const allLinks = await Promise.all(
-      removeDuplicates(links).map(async (link) => {
-        const _url = `${url}${link}`;
+      removeDuplicates(["/", ...links]).map(async (link) => {
+        const _url = `${modifiedUrl}${link}`;
 
         const page = await browser.newPage();
 

@@ -9,7 +9,7 @@ import {
   FlexRowStartCenter,
   FlexStartColCenter,
 } from "../Flex";
-import { Bot, SendHorizonal } from "lucide-react";
+import { Bot, Copy, SendHorizonal } from "lucide-react";
 import { Input } from "../ui/input";
 import { cn } from "@/lib/utils";
 import { sleep } from "@/pages/api/utils";
@@ -83,6 +83,8 @@ function ViewChatBots() {
     deleteChatBotMutation.error,
   ]);
 
+  const scriptContent = `<script async src="https://d3kno6bpmj270m.cloudfront.net/widget/userdesk.js" data-swissai="${selectedChat?.id}"></script>`;
+
   return (
     <FlexColStart className="w-full h-full">
       <FlexRowStartBtw className="w-fit px-4">
@@ -113,12 +115,31 @@ function ViewChatBots() {
         {selectedChat && (
           <FlexColStart className="w-full h-full px-4 border-r-solid border-r-[.5px] border-r-white-600 ">
             <br />
-            <p className="text-gray-100 font-jbR text-[12px] ">chatbot name</p>
+            <p className="text-gray-100 font-jbSB text-[12px] ">chatbot name</p>
             <p className="text-white-100 font-jbEB">{selectedChat.name}</p>
-            <p className="text-gray-100 font-jbR text-[12px] ">agent name</p>
+            <p className="text-gray-100 font-jbSB text-[12px] ">agent name</p>
             <p className="text-white-100 font-jbEB">
               {selectedChat.agent_name}
             </p>
+
+            <br />
+            <p className="text-white-100 font-jbSB text-[11px] ">
+              To add the Chat bubble at the corner of your website, paste the
+              following JavaScript snippet into the{" "}
+              <span className="text-orange-100">{"<head>"}</span> tag of your
+              webpage:
+            </p>
+            <FlexRowStartBtw className="relative w-full p-5 rounded-md bg-dark-200">
+              <p className="text-orange-100 font-jbSB text-[12px] ">
+                {scriptContent}
+              </p>
+              <button className="p-1 bg-dark-300 text-white-100 rounded-md absolute top-2 right-2" onClick={()=>{
+                navigator.clipboard.writeText(scriptContent)
+                toast.success("Copied to clipboard")
+              }}>
+                <Copy size={13} />
+              </button>
+            </FlexRowStartBtw>
 
             <br />
             <Button

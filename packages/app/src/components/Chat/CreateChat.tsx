@@ -145,17 +145,17 @@ function CreateChat({ goBack }: Props) {
         </FlexRowStartCenter>
       </button>
       <FlexRowCenterBtw className="w-full">
-        <h1 className="text-white-100 font-ppSB">Create chatbot</h1>
+        <h1 className="text-white-100 font-jbEB">Create chatbot</h1>
         <Button
           variant={"primary"}
-          className=" text-white-100 gap-3 font-ppB py-2 text-[12px]"
+          className=" text-white-100 gap-3 font-jbEB py-2 text-[12px]"
           disabled={disableButton()}
           onClick={handleCreateChat}
         >
           {createChatMutation.isPending ? (
             <Spinner color="#fff" size={15} />
           ) : (
-            <Bot className="mr-2" size={20} />
+            <Bot className="" size={20} />
           )}
           Create Bot
         </Button>
@@ -228,8 +228,8 @@ function ChatWidget({ botDetails, setBotDetails }: ChatWidgetProps) {
       <FlexRowStartBtw className="w-full h-screen overflow-h-scroll">
         <FlexColStart className="w-fit min-w-[300px] h-full">
           <FlexColStart className="w-full">
-            <p className="text-white-100 font-ppSB">Chatbot Widget</p>
-            <p className="text-gray-100 font-ppR text-[12px] ">
+            <p className="text-white-100 font-jbSB">Chatbot Widget</p>
+            <p className="text-gray-100 font-jbSB text-[12px] ">
               Create chatbot widget
             </p>
           </FlexColStart>
@@ -289,9 +289,9 @@ function ChatTrainingData({
   );
 
   return (
-    <FlexColStart className="w-full h-full">
+    <FlexColStart className="w-full h-screen overflow-auto">
       <FlexRowStartCenter>
-        <p className="text-white-100">Training Data</p>
+        <p className="text-white-100 font-jbSB">Training Data</p>
       </FlexRowStartCenter>
       <br />
       {/* Tags to differentiate choosen selected data type */}
@@ -299,14 +299,14 @@ function ChatTrainingData({
       <FlexRowStart className="w-full h-fit">
         <Button
           variant="appeal"
-          className="text-white-100 text-[8px] scale-[.95] font-ppSB"
+          className="text-white-100 text-[8px] scale-[.95] font-jbSB"
           disabled
         >
           Upload File
         </Button>
         <Button
           variant="appeal"
-          className="text-white-100 text-[8px] scale-[.95] font-ppSB"
+          className="text-white-100 text-[8px] scale-[.95] font-jbSB"
         >
           Webpage
         </Button>
@@ -323,7 +323,7 @@ function ChatTrainingData({
         />
         <Button
           variant="primary"
-          className="text-white-100 text-[8px] scale-[.95] font-ppSB"
+          className="text-white-100 text-[8px] scale-[.95] font-jbSB"
           onClick={extractWebpageUrlLinks}
           disabled={extractPageLinkMutation.isPending}
         >
@@ -332,13 +332,15 @@ function ChatTrainingData({
       </FlexRowStart>
 
       {/* fetched urls */}
-      <FlexColStart className="w-full">
+      <FlexColStart className="w-full h-full overflow-auto">
         {links.length > 0 &&
           !extractPageLinkMutation.isPending &&
           links.map((link, i) => (
             <FlexRowCenterBtw className="" key={i}>
-              <a href="#" className="text-white-300 text-[12px] font-ppSB">
-                {link?.url.slice(0, 50).concat("...")}
+              <a href="#" className="text-white-300 text-[12px] font-jbSB">
+                {link?.url.length > 100
+                  ? link?.url.slice(0, 100).concat("...")
+                  : link?.url}
               </a>
               <button onClick={() => filterLinks(link.url)}>
                 <X className="text-red-305" size={15} />

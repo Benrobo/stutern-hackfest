@@ -16,7 +16,7 @@ function Chat() {
           <p className="text-white-100 font-jbEB text-[12px] ">
             Flexible ChatBot Agents.
           </p>
-          <p className="text-gray-100 font-jbR text-[12px] ">
+          <p className="text-gray-100 font-jbSB text-[12px] ">
             Get started by creating your first{" "}
             <span
               onClick={() => setActiveView("create-chat")}

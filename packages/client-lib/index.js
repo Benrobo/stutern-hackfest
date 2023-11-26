@@ -142,7 +142,7 @@ async function init() {
       // const conv = await fetchConversations(conv_id);
       // appendChatMessages(conv);
     }
-  },10000)
+  },5000)
 
 
 

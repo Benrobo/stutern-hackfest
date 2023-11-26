@@ -7,20 +7,19 @@ const API_URL = "http://localhost:3000/api/";
 
 async function init() {
   injectThirdPartyScript();
+  await injectCss();
   await sleep(1000);
 
   const swissai_chat_id = _getChatId();
 
   const isChatIdValid = await checkChatValidity(swissai_chat_id); // a function
-  
-  if(!isChatIdValid){
+
+  if (!isChatIdValid) {
     throw new Error("Invalid chat id");
-  }else{
-    await injectCss();
+  } else {
     injectChatBubble();
     injectMainChatContainer();
   }
-
 
   // toast notification lib
   const notyf = new Notyf({
@@ -38,36 +37,124 @@ async function init() {
   const swissChatTitle = document.querySelector(".swissai-title");
   const chatSubmit = document.querySelector(".swissai-chat-control-send");
   const allFeatures = document.querySelectorAll(".swissai-feature-btn");
+  const sendEscallationBtn = document.querySelector(
+    ".swissai-escallation-btn.continue "
+  );
+  const closeEscalBtn = document.querySelector(
+    ".swissai-escallation-btn.cancel"
+  );
+  const closeUserInfoBtn = document.querySelector(
+    ".swissai-userinfo-close-btn"
+  );
+  const sendUserInfoBtn = document.querySelector(".swissai-userinfo-btn");
 
-  // chat title
+  // userinfo and escallation input fields
+  const escallationInputs = document.querySelectorAll(".escallation-form input");
+  const userInfoEmailInput = document.querySelector(".userinfo-form input");
+
+  // set chat title
   swissChatTitle.innerHTML = localStorage.getItem("@swissai-chat-name") ?? "Swiss AI Chat";
 
+
   // states
-  let botLoading = false;
-  let globalLoading = true;
   let conversations = [];
-
-  // storage
-  const conversation_id = localStorage.getItem("@swissai-conversation-id") ?? null;
-
-  if(conversation_id){
-    const conv = await fetchConversations(conversation_id);
-    conversations = (conv);
-    appendChatMessages(conversations);
+  let escallationInputData = {
+    name: "",
+    email: ""
+  }
+  let userInfoInputData = {
+    email: ""
   }
 
   // events
   bubble.onclick = () => chatContainer.classList.toggle("visible");
+  allFeatures.forEach((feature) => {
+    feature.onclick = () => {
+      const featureName = feature.getAttribute("name");
+      if (featureName === "user-info") {
+        const userInfoCont = document.querySelector(".swissai-userinfo-cont");
+        userInfoCont.classList.add("visible");
+      } else if (featureName === "human-support") {
+        const escallationCont = document.querySelector(
+          ".swissai-chat-escallation-cont"
+        );
+        escallationCont.classList.add("visible");
+      }
+    };
+  })
+
+  closePopup.onclick = () => chatContainer.classList.remove("visible");
+
+  // user info & escallation modal events
+  const hideUserInfoModal = ()=>{
+    const userInfoCont = document.querySelector(".swissai-userinfo-cont");
+    userInfoCont.classList.remove("visible");
+  }
+  const hideEscallationModal = ()=>{
+    const escallationCont = document.querySelector(
+      ".swissai-chat-escallation-cont"
+    );
+    escallationCont.classList.remove("visible");
+  }
+
+  sendEscallationBtn.onclick = async () => {
+    // handle sending of escallation
+    if(escallationInputData.name.length === 0){
+      notyf.error("Please enter your name");
+      return;
+    }
+    if(escallationInputData.email.length === 0){
+      notyf.error("Please enter your email address");
+      return;
+    }
+    await escallateChat(escallationInputData.email, escallationInputData.name, notyf, hideEscallationModal);
+  };
+  closeEscalBtn.onclick = () => hideEscallationModal();
   
+  closeUserInfoBtn.onclick = () => hideUserInfoModal();
+  sendUserInfoBtn.onclick = async () => {
+    if(userInfoInputData.email.length === 0){
+      notyf.error("Please enter your email address");
+      return;
+    }
+    await collectUserInfo(userInfoInputData.email, notyf, hideUserInfoModal);
+  }
+
+  // update escallation  / userinfo input data
+  escallationInputs.forEach((input)=>{
+    input.onkeyup = (e)=>{
+      const value = e.target.value;
+      const name = e.target.getAttribute("name");
+      escallationInputData[name] = value;
+    }
+  })
+  userInfoEmailInput.onkeyup = (e)=> userInfoInputData["email"] =  e.target.value;
+
+  // check if user info has been collected, disable it every 1ms
+  setInterval(()=>{
+    disableCollectingUserInfo();
+  },1000)
+
+
+
+  // storage
+  const conversation_id =
+    localStorage.getItem("@swissai-conversation-id") ?? null;
+
+  if (conversation_id) {
+    const conv = await fetchConversations(conversation_id);
+    conversations = conv;
+    appendChatMessages(conversations);
+  }
+
   // handle user message submission
   chatInput.onkeyup = async (e) => {
     const value = e.target.value;
-    if (e.key === "Enter"){
-      
+    if (e.key === "Enter") {
       handleElementLoadingState(true, false, false);
       const anonymousId = localStorage.getItem("@swissai-anonymous-id") ?? null;
       const resp = await sendAnonymousMsg(value, anonymousId, swissai_chat_id);
-      if(resp.success){
+      if (resp.success) {
         chatInput.value = "";
         const data = resp.data;
         const { conversation_id, anonymous_id } = data;
@@ -76,19 +163,18 @@ async function init() {
 
         // fetch conversations
         const conv = await fetchConversations(conversation_id);
-        conversations = (conv);
+        conversations = conv;
         // append messages
         appendChatMessages(conv);
-        
+
         // get ai response
-        await requestAIResponse(conversation_id, notyf)
+        await requestAIResponse(conversation_id, notyf);
         scrollToBottom();
-      }
-      else{
+      } else {
         notyf.error(resp.errMsg);
         handleElementLoadingState(false, false, false);
       }
-    };
+    }
   };
 }
 
@@ -171,6 +257,72 @@ async function requestAIResponse(conversation_id, notyf) {
   }
 }
 
+async function collectUserInfo(email, notyf, closeModal) {
+  try {
+    let convId = localStorage.getItem("@swissai-conversation-id") ?? null;
+    let payload = {
+      email,
+      conversation_id: convId,
+    };
+    
+    handleElementLoadingState(true);
+    const req = await fetch(`${API_URL}chat/conversations/anonymous`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+    const resp = await req.json();
+
+    handleElementLoadingState(false);
+
+    if(![200, 201].includes(resp?.statusCode)){
+      notyf.error(resp?.message);
+      return;
+    }
+
+    notyf.success(`Successfull.`)
+    closeModal();
+
+    localStorage.setItem("@swissai-info-collected", true);
+
+  } catch (err) {
+    handleElementLoadingState(false);
+    notyf.error(resp?.message);
+  }
+}
+
+async function escallateChat(email, name, notyf, closeModal) {
+  try {
+    let chatId = _getChatId();
+    let payload = {
+      email,
+      name,
+      chatId,
+    };
+
+    handleElementLoadingState(true);
+    const req = await fetch(`${API_URL}chat/conversations/escallate`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    const resp = await req.json();
+
+    handleElementLoadingState(false);
+
+    if (![200, 201].includes(resp?.statusCode)) {
+      notyf.error(resp?.message);
+      return;
+    }
+
+    notyf.success(resp?.message)
+    closeModal();
+
+    localStorage.setItem("@swissai-info-collected", true);
+  } catch (err) {
+    handleElementLoadingState(false);
+    notyf.error(err?.message);
+  }
+}
+
 async function checkChatValidity(chat_id){
   try {
     const req = await fetch(`${API_URL}chat/valid/${chat_id}`);
@@ -239,9 +391,36 @@ function injectMainChatContainer() {
         <button class="swissai-feature-btn swissai-user-details" name="user-info">
           👋 enter your info
         </button>
-        <button class="swissai-feature-btn swissai-schedule-meeting" name="schedule-meeting">
-          🤙 schedule a meeting
+        <button class="swissai-feature-btn swissai-request-" name="human-support">
+          🔔 Requests human support
         </button>
+      </div>
+
+      <!-- chat escallation modal -->
+      <div class="swissai-chat-escallation-cont">
+        <div class="escallation-head">
+            🔔
+            <h2>Are you sure you want to escalate the chat to human support?</h2>
+            <p>Our support team will get back to you as soon as they can via email.</p>
+        </div>
+        <div class="escallation-form">
+            <input type="text" name="name" class="input" placeholder="Enter your name" />
+            <input type="text" name="email" class="input" placeholder="Enter your email address" />
+            <button class="swissai-escallation-btn continue">Yes, Continue</button>
+            <button class="swissai-escallation-btn cancel">No, Thanks</button>
+        </div>
+      </div>
+
+      <!-- user info modal -->
+      <div class="swissai-userinfo-cont">
+        <div class="userinfo-head">
+            <h2>Let us know how to contact you</h2>
+        </div>
+        <div class="userinfo-form">
+            <input type="text" class="input" placeholder="Enter your email address" />
+            <button class="swissai-userinfo-btn">Send</button>
+            <button class="swissai-userinfo-close-btn close">Close</button>
+        </div>
       </div>
       
       <!-- chat control input -->
@@ -463,12 +642,26 @@ function handleElementLoadingState(loading, isGlobal = false, _aiLoading = false
   const chatInput = document.querySelector(".swissai-chat-control-input");
   const aiLoading = document.querySelector(".swissai-ai-loading-cont");
   const modalLoader = document.querySelector(".swissai-modal-loader");
+  const sendUserInfoBtn = document.querySelector(".swissai-userinfo-btn");
+  const sendEscallationBtn = document.querySelector(
+    ".swissai-escallation-btn.continue "
+  );
+
 
   if(loading){
     
     // disable chat input
     chatInput.disabled = true;
     chatInput.classList.add("disabled");
+
+    // disable send user info btn
+    sendUserInfoBtn.disabled = true;
+    sendUserInfoBtn.classList.add("loading");
+
+    // disable send escallation btn
+    sendEscallationBtn.disabled = true;
+    sendEscallationBtn.classList.add("loading");
+
 
     // show ai chat loading state
     if (_aiLoading) aiLoading.classList.add("visible");
@@ -482,6 +675,14 @@ function handleElementLoadingState(loading, isGlobal = false, _aiLoading = false
     // enable chat input
     chatInput.disabled = false;
     chatInput.classList.remove("disabled");
+
+    // enable send user info btn
+    sendUserInfoBtn.disabled = false;
+    sendUserInfoBtn.classList.remove("loading");
+
+    // enable escallation send btn
+    sendEscallationBtn.disabled = false;
+    sendEscallationBtn.classList.remove("loading");
 
     // hide ai chat loading state
     if (_aiLoading) aiLoading.classList.remove("visible");
@@ -530,6 +731,20 @@ function showAILoading() {
   `;
   const chatBody = document.querySelector(".swissai-chat-body");
   chatBody.innerHTML += aiLoading;
+}
+
+function disableCollectingUserInfo(){
+  const _userInfoCollected =
+    JSON.parse(localStorage.getItem("@swissai-info-collected")) ? true : false;
+  const allFeatures = document.querySelectorAll(".swissai-feature-btn");
+  const infoFeturesBtn = allFeatures[0];
+  
+  if(_userInfoCollected)  {
+    infoFeturesBtn.disabled = true;
+    infoFeturesBtn.classList.add("disabled");
+    infoFeturesBtn.innerHTML = `✅ Done`;
+  }
+
 }
 
 function sleep(ms){

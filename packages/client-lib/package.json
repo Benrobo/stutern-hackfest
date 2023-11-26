@@ -5,5 +5,9 @@
   "main": "./lib/index.js",
   "keywords": [],
   "author": "Benrobo",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "chrome-aws-lambda": "^8.0.2",
+    "puppeteer-core": "^8.0.0"
+  }
 }

@@ -3,6 +3,7 @@ import cheerio from "cheerio";
 import HttpException from "../exception";
 import fs from "fs";
 import puppeteer from "puppeteer";
+const chrome = require("chrome-aws-lambda");
 import { RESPONSE_CODE } from "@/types";
 
 export async function extractLinksFromWebPages(url: string) {
@@ -13,10 +14,18 @@ export async function extractLinksFromWebPages(url: string) {
     const html = response.data;
 
     // Use Puppeteer to execute JavaScript and retrieve dynamic content
-    const browser = await puppeteer.launch({
-      headless: "new",
-    });
-    
+    const browser = await puppeteer.launch(
+      process.env.NODE_ENV === "production"
+        ? {
+            args: chrome.args,
+            executablePath: await chrome.executablePath,
+            headless: chrome.headless,
+          }
+        : {
+            headless: "new",
+          }
+    );
+
     // Continue with cheerio for server-side HTML parsing
     const $ = cheerio.load(html);
 
@@ -30,7 +39,8 @@ export async function extractLinksFromWebPages(url: string) {
           !link.includes("https") &&
           link.startsWith("/") &&
           !link.includes("#")
-      ).slice(0,8) // only scrape 8 links
+      )
+      .slice(0, 8); // only scrape 8 links
 
     // Fetch links content
     const _links = [] as any;
@@ -51,16 +61,16 @@ export async function extractLinksFromWebPages(url: string) {
 
         // Remove script and style tags
         const invalidTags =
-          "script,style,svg,img,path,input,noscript,next-route-announcer,head".split(",");
+          "script,style,svg,img,path,input,noscript,next-route-announcer,head".split(
+            ","
+          );
 
         invalidTags.forEach((tag) => {
-            _$(`${tag}`).remove();
-        })
+          _$(`${tag}`).remove();
+        });
 
         const validTags = _$("*")
-          .not(
-            `:is(${invalidTags.join(",")})`
-          )
+          .not(`:is(${invalidTags.join(",")})`)
           .filter(
             (_, element) =>
               $(element).html() !== undefined || $(element).text() !== ""
@@ -74,10 +84,10 @@ export async function extractLinksFromWebPages(url: string) {
             .join(" ") // Join the text content
             .trim(); // Trim leading and trailing whitespaces
 
-            _links.push({
-              url: _url,
-              content: textContent
-            })
+          _links.push({
+            url: _url,
+            content: textContent,
+          });
         });
       })
     );
@@ -86,13 +96,13 @@ export async function extractLinksFromWebPages(url: string) {
 
     // extract non duplicate links if exists
     const nonDuplicateLinks = _links.filter(
-        (link: any, index: number, self: any) =>
-            index === self.findIndex((t: any) => t.url === link.url)
-        );
+      (link: any, index: number, self: any) =>
+        index === self.findIndex((t: any) => t.url === link.url)
+    );
 
     return {
-        links: nonDuplicateLinks,
-        metadata: _links
+      links: nonDuplicateLinks,
+      metadata: _links,
     };
   } catch (error) {
     console.error("Error:", error);

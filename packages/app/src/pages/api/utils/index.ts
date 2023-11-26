@@ -14,17 +14,16 @@ export async function extractLinksFromWebPages(url: string) {
     const html = response.data;
 
     // Use Puppeteer to execute JavaScript and retrieve dynamic content
-    const browser = await puppeteer.launch(
-      process.env.NODE_ENV === "production"
-        ? {
-            args: chrome.args,
-            executablePath: await chrome.executablePath,
-            headless: chrome.headless,
-          }
-        : {
-            headless: "new",
-          }
-    );
+    const IS_PRODUCTION = process.env.NODE_ENV === "production";
+    const getBrowser = () =>
+      IS_PRODUCTION
+        ? // Connect to browserless so we don't run Chrome on the same hardware in production
+          puppeteer.connect({
+            browserWSEndpoint: `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_API_KEY}`,
+          })
+        : // Run the browser locally while in development
+          puppeteer.launch();
+    const browser =  await getBrowser();
 
     // Continue with cheerio for server-side HTML parsing
     const $ = cheerio.load(html);

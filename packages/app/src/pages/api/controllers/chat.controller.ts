@@ -5,7 +5,9 @@ import {
   adminReplyToConversationSchema,
   anonymousConversationSchema,
   assistantConversationSchema,
+  collectUserInfoSchema,
   createChatSchema,
+  escallateChatSchema,
 } from "../utils/validation";
 import { RESPONSE_CODE } from "@/types";
 import redisClient from "../config/redis";
@@ -350,7 +352,6 @@ export default class ChatController {
         ? (JSON.parse(req.body) as AnonymousConvPayload)
         : (req.body as AnonymousConvPayload);
 
-    
     const _validated = await zodValidation(
       anonymousConversationSchema,
       req,
@@ -449,10 +450,10 @@ export default class ChatController {
 
     // check if conversation exists
     const conversation = await prisma.conversations.findFirst({
-      where:{id: conversation_id}
+      where: { id: conversation_id },
     });
 
-    if(!conversation){
+    if (!conversation) {
       throw new HttpException(
         "Invalid conversation payload",
         RESPONSE_CODE.CONVERSATION_NOT_FOUND,
@@ -461,7 +462,7 @@ export default class ChatController {
     }
 
     // check if conversation is in control by human/user
-    if(conversation.in_control === "AI"){
+    if (conversation.in_control === "AI") {
       throw new HttpException(
         "Conversation is in control by AI",
         RESPONSE_CODE.CONVERSATION_ALREADY_IN_CONTROL,
@@ -475,11 +476,17 @@ export default class ChatController {
         message,
         sender_type: "ADMIN",
         conversation_id: conversation_id as string,
-        userId
+        userId,
       },
     });
 
-    return sendResponse.success(res, RESPONSE_CODE.SUCCESS, "Message sent successfully", 200, null)
+    return sendResponse.success(
+      res,
+      RESPONSE_CODE.SUCCESS,
+      "Message sent successfully",
+      200,
+      null
+    );
   }
 
   async assistantConversation(req: NextApiRequest, res: NextApiResponse) {
@@ -716,6 +723,118 @@ export default class ChatController {
       "Chat is valid",
       200,
       chat
+    );
+  }
+
+  async collectUserInfo(req: NextApiRequest, res: NextApiResponse) {
+    const payload = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    const _validated = await zodValidation(collectUserInfoSchema, req, res);
+    if (!_validated) {
+      throw new HttpException(
+        "Invalid payload",
+        RESPONSE_CODE.VALIDATION_ERROR,
+        400
+      );
+    }
+
+    const { conversation_id, email } = payload;
+
+    // check if conversation exists
+    const conversation = await prisma.conversations.findFirst({
+      where: { id: conversation_id },
+    });
+
+    if (!conversation) {
+      throw new HttpException(
+        "Conversation not found",
+        RESPONSE_CODE.CONVERSATION_NOT_FOUND,
+        404
+      );
+    }
+
+    // update conversation
+    await prisma.conversations.update({
+      where: {
+        id: conversation_id,
+      },
+      data: {
+        customer_email: email,
+      },
+    });
+
+    return sendResponse.success(
+      res,
+      RESPONSE_CODE.SUCCESS,
+      "User info collected successfully",
+      200,
+      null
+    );
+  }
+
+  async escallateConversation(req: NextApiRequest, res: NextApiResponse) {
+   const payload =
+     typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    const _validated = await zodValidation(escallateChatSchema, req, res);
+    if (!_validated) {
+      throw new HttpException(
+        "Invalid payload",
+        RESPONSE_CODE.VALIDATION_ERROR,
+        400
+      );
+    }
+
+    const { chatId, name, email } = payload;
+
+    // check if chat exists
+    const chat = await prisma.chats.findFirst({
+      where: {
+        id: chatId,
+      },
+    });
+
+    if (!chat) {
+      throw new HttpException(
+        "Chat not found",
+        RESPONSE_CODE.CHAT_NOT_FOUND,
+        404
+      );
+    }
+
+    // check if customer email exists in EscallatedConversations
+    const escallatedConversation = await prisma.escallatedConversations.findFirst(
+      {
+        where: {
+          chatId: chatId,
+          customer_email: email,
+        },
+      }
+    );
+
+    if (escallatedConversation) {
+      return sendResponse.success(
+        res,
+        RESPONSE_CODE.CHAT_ESCALLATED,
+        "Your chat has been escalated to our human support team. Please wait while we connect you to an agent",
+        201
+      );
+    }
+
+    // create escallatedConversation
+    await prisma.escallatedConversations.create({
+      data: {
+        id: shortUUID.generate(),
+        chatId: chatId,
+        customer_email: email,
+        customer_name: name,
+      },
+    });
+
+    return sendResponse.success(
+      res,
+      RESPONSE_CODE.SUCCESS,
+      "Your chat is now being handled by our human support team. They will be with you shortly",
+      200,
+      null
     );
   }
 }

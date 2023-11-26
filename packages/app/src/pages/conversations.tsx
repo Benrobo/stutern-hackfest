@@ -14,6 +14,7 @@ import { Spinner } from "@/components/Spinner";
 import { Input } from "@/components/ui/input";
 import {
   adminReplyToConversation,
+  deleteConversation,
   getAllChats,
   getConversationMessages,
   getConversations,
@@ -92,6 +93,9 @@ function Conversations() {
   const getConvMutation = useMutation({
     mutationFn: async (query: string) => getConversations(query),
   });
+  const deleteConvMutation = useMutation({
+    mutationFn: async (query: string) => deleteConversation(query),
+  });
   const getConvMessagesMutation = useMutation({
     mutationFn: async (conv_id: string) => getConversationMessages(conv_id),
   });
@@ -169,6 +173,24 @@ function Conversations() {
     takeConvControlMut.error,
   ]);
 
+  // delete conversation effect
+  useEffect(() => {
+    if (deleteConvMutation.error) {
+      const data = (deleteConvMutation.error as any)?.response
+        ?.data as ResponseData;
+      toast.error(data?.message as string);
+    }
+    if (deleteConvMutation.data) {
+      // refetch conversations
+      getConvMutation.mutate((selectedChat?.id as string) ?? "all");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    deleteConvMutation.data,
+    deleteConvMutation.isPending,
+    deleteConvMutation.error,
+  ]);
+
   // reply to conversation
   useEffect(() => {
     if (replyToConvMut.error) {
@@ -181,6 +203,7 @@ function Conversations() {
       // refetch conversations
       replyToConvMut.reset()
       getConvMessagesMutation.mutate(selectedConversation?.id as string);
+      scrollToBottom()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -301,7 +324,13 @@ function Conversations() {
                 </p>
               </FlexColStart>
               <FlexRowCenterBtw>
-                <button onClick={()=> getConvMessagesMutation.mutate(selectedConversation?.id as string)}>
+                <button
+                  onClick={() =>
+                    getConvMessagesMutation.mutate(
+                      selectedConversation?.id as string
+                    )
+                  }
+                >
                   <RefreshCw
                     size={18}
                     className={cn(
@@ -310,6 +339,7 @@ function Conversations() {
                     )}
                   />
                 </button>
+
                 <button>
                   <User2
                     size={18}
@@ -335,6 +365,22 @@ function Conversations() {
                     ? "Take control"
                     : "Release control"}
                 </button>
+                <button
+                  className={cn(
+                    "px-3 py-1 rounded-md bg-red-305 font-ppjbSB text-white-100 text-[9px] "
+                  )}
+                  onClick={() => {
+                    const confirm = window.confirm("Are you sure about this action?")
+                    if(confirm){
+                      deleteConvMutation.mutate(
+                        selectedConversation?.id as string
+                      );
+                    }
+                  }}
+                  disabled={deleteConvMutation.isPending}
+                >
+                  delete
+                </button>
               </FlexRowCenterBtw>
             </FlexRowCenterBtw>
           </FlexColStart>
@@ -347,7 +393,7 @@ function Conversations() {
 
           <FlexColStart
             ref={messageList}
-            className="w-full h-full max-h-[550px] overflow-y-scroll hideScrollBar gap-5 px-4 py-4 scroll-smooth"
+            className="w-full h-full max-h-[550px] overflow-y-scroll gap-5 px-4 py-4 scroll-smooth"
           >
             {messages.length > 0 ? (
               messages.map((msg) => {

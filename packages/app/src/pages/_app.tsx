@@ -9,8 +9,15 @@ import { Toaster } from "react-hot-toast";
 import { Theme } from "@radix-ui/themes";
 import { ClerkProvider } from "@clerk/nextjs";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Router } from "next/router";
+// import nProgress from "nprogress";
+import "../styles/nprogress.css";
 
 const queryClient = new QueryClient();
+
+// Router.events.on("routeChangeStart", nProgress.start);
+// Router.events.on("routeChangeError", nProgress.done);
+// Router.events.on("routeChangeComplete", nProgress.done);
 
 export default function App({ Component, pageProps }: AppProps) {
   return (

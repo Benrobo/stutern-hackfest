@@ -25,6 +25,11 @@ export const getConversations = async (query: string) => {
   return req.data;
 };
 
+export const deleteConversation = async (id: string) => {
+  const req = await $axios.delete(`/chat/conversations/${id}`);
+  return req.data;
+};
+
 export const getConversationMessages = async (conv_id: string) => {
   const req = await $axios.get(`/chat/conversations/messages/${conv_id}`);
   return req.data;
@@ -40,7 +45,7 @@ export const adminReplyToConversation = async (data: any) => {
   return req.data;
 };
 
-export const getUserSettings = async () => {
-  const req = await $axios.get(`/user/settings`);
+export const getEscallatedConversations = async () => {
+  const req = await $axios.get(`/chat/conversations/escallations`);
   return req.data;
 };

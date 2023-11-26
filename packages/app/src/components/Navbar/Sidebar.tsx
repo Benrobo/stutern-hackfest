@@ -2,7 +2,7 @@ import Image from "next/image";
 import React, { useContext } from "react";
 import { twMerge } from "tailwind-merge";
 import Link from "next/link";
-import { Bot,  LayoutDashboard, MessagesSquare, Settings } from "lucide-react";
+import { Bot,  LayoutDashboard, MessagesSquare, Settings, Users } from "lucide-react";
 
 interface SidebarProps {
   activePage: string;
@@ -90,13 +90,13 @@ function SideBar({ activePage }: SidebarProps) {
 
         {/* Settings */}
         <Link
-          href="/settings"
+          href="/escallations"
           className={twMerge(
             "w-full h-auto group px-4 py-3 rounded-[6px] flex items-center justify-start gap-2 font-ppReg transition ease-in-out text-[14px]",
             buttonStyle(activePage, "settings").btn
           )}
         >
-          <Settings
+          <Users
             size={15}
             className={twMerge(
               "group-hover:text-white-100 text-[11px] ml-1 transition ease-in-out",
@@ -104,7 +104,7 @@ function SideBar({ activePage }: SidebarProps) {
             )}
           />
           <span className="group-hover:text-white-100 text-[11px] ml-1 transition ease-in-out">
-            Settings
+            Escallations
           </span>
         </Link>
       </div>

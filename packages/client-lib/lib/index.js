@@ -85,7 +85,8 @@ async function init() {
   })
   closePopup.onclick = () => chatContainer.classList.remove("visible");
   refreshConversation.onclick = async () => {
-    const conv_id = localStorage.getItem("@swissai-conversation-id") ?? null;
+    const localDB = returnLocalDB(swissai_chat_id);
+    const conv_id = localDB?.conversation_id ?? null;
     if (conv_id) {
       handleElementLoadingState(true, true, false);
       const conv = await fetchConversations(conv_id);
@@ -144,20 +145,11 @@ async function init() {
     disableCollectingUserInfo();
   },1000);
 
-  // fetch conversations every 3ms
-  setInterval(async ()=>{
-    const conv_id = localStorage.getItem("@swissai-conversation-id") ?? null;
-    if(conv_id){
-      // const conv = await fetchConversations(conv_id);
-      // appendChatMessages(conv);
-    }
-  },5000)
-
 
 
   // storage
-  const conversation_id =
-    localStorage.getItem("@swissai-conversation-id") ?? null;
+  const localDB = returnLocalDB(swissai_chat_id);
+  const conversation_id = localDB?.conversation_id ?? null;
 
   if (conversation_id) {
     const conv = await fetchConversations(conversation_id);
@@ -170,14 +162,20 @@ async function init() {
     const value = e.target.value;
     if (e.key === "Enter") {
       handleElementLoadingState(true, false, false);
-      const anonymousId = localStorage.getItem("@swissai-anonymous-id") ?? null;
+      const anonymousId = localDB?.anonymous_id ?? null;
       const resp = await sendAnonymousMsg(value, anonymousId, swissai_chat_id);
       if (resp.success) {
         chatInput.value = "";
         const data = resp.data;
         const { conversation_id, anonymous_id } = data;
-        localStorage.setItem("@swissai-conversation-id", conversation_id);
-        localStorage.setItem("@swissai-anonymous-id", anonymous_id);
+
+        // use chatID as the key for storing conversation id
+        const payload = {
+          conversation_id,
+          anonymous_id,
+        }
+        // store conversation id and anonymous id
+        localStorage.setItem(swissai_chat_id, JSON.stringify(payload));
 
         // fetch conversations
         const conv = await fetchConversations(conversation_id);
@@ -206,7 +204,6 @@ async function fetchConversations(conversation_id) {
     return data;
   } catch (err) {
     console.log(err);
-    localStorage.removeItem("@swissai-conversation-id");
     return [];
   }
 }
@@ -225,8 +222,6 @@ async function sendAnonymousMsg(message, anonymous_id, chatId) {
       body: JSON.stringify(payload),
     });
     const res = await req.json();
-
-    console.log(res)
 
     if (![201, 200].includes(res.statusCode)) {
       response.errMsg = res.message ?? "Something went wrong! ";
@@ -275,7 +270,8 @@ async function requestAIResponse(conversation_id, notyf) {
 
 async function collectUserInfo(email, notyf, closeModal) {
   try {
-    let convId = localStorage.getItem("@swissai-conversation-id") ?? null;
+    const localDB = returnLocalDB(_getChatId());
+    let convId = localDB?.conversation_id ?? null;
     let payload = {
       email,
       conversation_id: convId,
@@ -298,7 +294,7 @@ async function collectUserInfo(email, notyf, closeModal) {
     notyf.success(`Successfull.`)
     closeModal();
 
-    localStorage.setItem("@swissai-info-collected", true);
+    localStorage.setItem(`${_getChatId()}_info_collected`, true);
 
   } catch (err) {
     handleElementLoadingState(false);
@@ -331,8 +327,6 @@ async function escallateChat(email, name, notyf, closeModal) {
 
     notyf.success(resp?.message)
     closeModal();
-
-    localStorage.setItem("@swissai-info-collected", true);
   } catch (err) {
     handleElementLoadingState(false);
     notyf.error(err?.message);
@@ -362,6 +356,11 @@ function _getChatId(){
   const scripts = document.querySelectorAll('script[data-swissai]');
   const chatId = scripts[scripts.length - 1].dataset["swissai"];
   return chatId;
+}
+
+function returnLocalDB(chatId){
+  const localDB = localStorage.getItem(chatId) ? JSON.parse(localStorage.getItem(chatId)) : null;
+  return localDB;
 }
 
 function injectMainChatContainer() {
@@ -759,7 +758,7 @@ function showAILoading() {
 
 function disableCollectingUserInfo(){
   const _userInfoCollected =
-    JSON.parse(localStorage.getItem("@swissai-info-collected")) ? true : false;
+    JSON.parse(localStorage.getItem(`${_getChatId()}_info_collected`)) ? true : false;
   const allFeatures = document.querySelectorAll(".swissai-feature-btn");
   const infoFeturesBtn = allFeatures[0];
   

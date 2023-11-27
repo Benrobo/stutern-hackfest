@@ -84,9 +84,9 @@ function ViewChatBots() {
     deleteChatBotMutation.error,
   ]);
 
-  const scriptContent = `<script async src="https://cdn.jsdelivr.net/npm/swissai@1.0.4/lib/index.js" data-swissai="${selectedChat?.id}"></script>`;
+  const scriptContent = `<script src="https://cdn.jsdelivr.net/npm/swissai@1.0.5/lib/index.js" data-swissai="${selectedChat?.id}"></script>`;
 
-  const cssContent = `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swissai@1.0.4/lib/style.css">`;
+  const cssContent = `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swissai@1.0.5/lib/style.css">`;
 
   return (
     <FlexColStart className="w-full h-full">

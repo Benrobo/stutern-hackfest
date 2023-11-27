@@ -2,6 +2,7 @@ import CreateChat from "@/components/Chat/CreateChat";
 import ViewChatBots from "@/components/Chat/ViewChatBots";
 import { FlexColStart } from "@/components/Flex";
 import Layout from "@/components/Layout";
+import { Button } from "@/components/ui/button";
 import React, { useEffect, useState } from "react";
 
 function Chat() {
@@ -26,10 +27,19 @@ function Chat() {
             </span>
             .
           </p>
+          <Button
+            onClick={() => setActiveView("create-chat")}
+            className="absolute top-5 right-5 py-[10px] px-5 font-jbEB text-[12px] "
+            variant={"appeal"}
+          >
+            Create Bot
+          </Button>
         </FlexColStart>
       )}
       {activeView === "view-chatbots" && <ViewChatBots />}
-      {activeView === "create-chat" && <CreateChat goBack={()=> setActiveView("view-chatbots")} />}
+      {activeView === "create-chat" && (
+        <CreateChat goBack={() => setActiveView("view-chatbots")} />
+      )}
     </Layout>
   );
 }

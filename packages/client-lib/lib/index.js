@@ -162,8 +162,12 @@ async function init() {
     const value = e.target.value;
     if (e.key === "Enter") {
       handleElementLoadingState(true, false, false);
+      
+      const localDB = returnLocalDB(swissai_chat_id);
       const anonymousId = localDB?.anonymous_id ?? null;
+      
       const resp = await sendAnonymousMsg(value, anonymousId, swissai_chat_id);
+      
       if (resp.success) {
         chatInput.value = "";
         const data = resp.data;
@@ -174,8 +178,13 @@ async function init() {
           conversation_id,
           anonymous_id,
         }
-        // store conversation id and anonymous id
-        localStorage.setItem(swissai_chat_id, JSON.stringify(payload));
+
+        // check if swissai_chat_id is already in localstorage
+        if(!localStorage.getItem(swissai_chat_id)){
+          // store conversation id and anonymous id
+          localStorage.setItem(swissai_chat_id, JSON.stringify(payload));
+        }
+
 
         // fetch conversations
         const conv = await fetchConversations(conversation_id);

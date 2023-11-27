@@ -918,7 +918,7 @@ export default class ChatController {
 
     // include chat agent name in response
     const _escallatedConversations = await Promise.all(
-      escallatedConversations.map(async (conv) => {
+      escallatedConversations.map(async (conv:any) => {
         const chat = await prisma.chats.findFirst({
           where: {
             id: conv.chatId,

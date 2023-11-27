@@ -206,6 +206,7 @@ async function fetchConversations(conversation_id) {
     return data;
   } catch (err) {
     console.log(err);
+    localStorage.removeItem("@swissai-conversation-id");
     return [];
   }
 }

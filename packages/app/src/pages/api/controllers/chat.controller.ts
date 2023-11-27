@@ -275,7 +275,7 @@ export default class ChatController {
       });
 
       const _conversations = await Promise.all(
-        conversations.map(async (conv) => {
+        conversations.map(async (conv: any) => {
           const lastMsg = await this.getLastMsg(conv.id);
           return {
             ...conv,

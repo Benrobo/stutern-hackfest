@@ -83,7 +83,7 @@ function ViewChatBots() {
     deleteChatBotMutation.error,
   ]);
 
-  const scriptContent = `<script async src="https://cdn.jsdelivr.net/npm/swissai/lib/index.js" data-swissai="${selectedChat?.id}"></script>`;
+  const scriptContent = `<script async src="https://cdn.jsdelivr.net/npm/swissai@latest/lib/index.js" data-swissai="${selectedChat?.id}"></script>`;
 
   return (
     <FlexColStart className="w-full h-full">

@@ -39,6 +39,7 @@ type ConversationsData = {
   chatId: string;
   userId: string;
   in_control: "AI" | "USER";
+  customer_email: string;
   createdAt: string;
   lastMessage: string;
   chat: {
@@ -340,12 +341,25 @@ function Conversations() {
                   />
                 </button>
 
-                <button>
+                <button
+                  disabled={!selectedConversation?.customer_email}
+                  className={cn(
+                    selectedConversation?.customer_email
+                      ? "opacity-1"
+                      : "opacity-[.5]"
+                  )}
+                  onClick={() => {
+                    if (selectedConversation?.customer_email) {
+                      window.alert(selectedConversation?.customer_email);
+                    }
+                  }}
+                >
                   <User2
                     size={18}
                     className="bg-white-400 p-1 rounded-[50%] text-white-100"
                   />
                 </button>
+
                 <button
                   className={cn(
                     "px-3 py-1 rounded-md border-solid border-white-400 font-ppSB text-dark-100 border-[1px] text-[9px] ",
@@ -370,8 +384,10 @@ function Conversations() {
                     "px-3 py-1 rounded-md bg-red-305 font-ppjbSB text-white-100 text-[9px] "
                   )}
                   onClick={() => {
-                    const confirm = window.confirm("Are you sure about this action?")
-                    if(confirm){
+                    const confirm = window.confirm(
+                      "Are you sure about this action?"
+                    );
+                    if (confirm) {
                       deleteConvMutation.mutate(
                         selectedConversation?.id as string
                       );

@@ -85,6 +85,8 @@ function ViewChatBots() {
 
   const scriptContent = `<script async src="https://cdn.jsdelivr.net/npm/swissai@latest/lib/index.js" data-swissai="${selectedChat?.id}"></script>`;
 
+  const cssContent = `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swissai@latest/lib/style.css">`;
+
   return (
     <FlexColStart className="w-full h-full">
       <FlexRowStartBtw className="w-fit px-4">

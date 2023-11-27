@@ -642,7 +642,7 @@ export default class ChatController {
         },
       });
 
-      const _prevConversations = prevConversations.map((conv) => {
+      const _prevConversations = prevConversations.map((conv: any) => {
         return {
           message: conv.message,
           sender_type: conv.sender_type === "ANONYMOUS" ? "HUMAN" : conv.sender_type,

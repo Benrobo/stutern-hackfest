@@ -33,6 +33,7 @@ async function init() {
   const bubble = document.querySelector(".swissai-chat-activator-btn");
   const chatContainer = document.querySelector(".swissai-chat-container");
   const closePopup = document.querySelector("#close-popup");
+  const refreshConversation = document.querySelector(".swissai-refresh-conversation");
   const chatInput = document.querySelector(".swissai-chat-control-input");
   const swissChatTitle = document.querySelector(".swissai-title");
   const chatSubmit = document.querySelector(".swissai-chat-control-send");
@@ -82,8 +83,16 @@ async function init() {
       }
     };
   })
-
   closePopup.onclick = () => chatContainer.classList.remove("visible");
+  refreshConversation.onclick = async () => {
+    const conv_id = localStorage.getItem("@swissai-conversation-id") ?? null;
+    if (conv_id) {
+      handleElementLoadingState(true, true, false);
+      const conv = await fetchConversations(conv_id);
+      handleElementLoadingState(false, false, false);
+      appendChatMessages(conv);
+    }
+  };
 
   // user info & escallation modal events
   const hideUserInfoModal = ()=>{
@@ -362,7 +371,8 @@ function injectMainChatContainer() {
         <div class="swissai-chat-header-title">
           <h3 class="swissai-title">Swiss AI Chat</h3>
         </div>
-        <button id="close-popup" class="swissai-chat-header-close">
+        <div class="right">
+          <button id="close-popup" class="swissai-chat-header-close">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -379,6 +389,10 @@ function injectMainChatContainer() {
             <path d="m6 6 12 12" />
           </svg>
         </button>
+        <button class="swissai-refresh-conversation">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-ccw"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+        </button>
+        </div>
       </div>
 
       <!-- chat body -->
@@ -549,7 +563,7 @@ function appendChatMessages(messages) {
                 </p>
               </div>
               <div class="swissai-chat-message-metadata" style="margin-top:10px; margin-bottom:5px;">{metadata}</div>
-              <div class="swissai-chat-message-timestamp">{timestamp}</div>
+              <!--<div class="swissai-chat-message-timestamp">{timestamp}</div> -->
             </div>
           </div>
         </div>
@@ -567,7 +581,7 @@ function appendChatMessages(messages) {
                 </p>
               </div>
               <div class="swissai-chat-message-metadata" style="margin-top:10px; margin-bottom:5px;">{metadata}</div>
-              <div class="swissai-chat-message-timestamp">{timestamp}</div>
+              <!-- <div class="swissai-chat-message-timestamp">{timestamp}</div> -->
             </div>
           </div>
         </div>
@@ -643,6 +657,9 @@ function handleElementLoadingState(loading, isGlobal = false, _aiLoading = false
   const sendEscallationBtn = document.querySelector(
     ".swissai-escallation-btn.continue "
   );
+  const refreshConversation = document.querySelector(
+    ".swissai-refresh-conversation"
+  );
 
 
   if(loading){
@@ -659,12 +676,16 @@ function handleElementLoadingState(loading, isGlobal = false, _aiLoading = false
     sendEscallationBtn.disabled = true;
     sendEscallationBtn.classList.add("loading");
 
+    // disable refresh conversation btn
+    refreshConversation.disabled = true;
+    refreshConversation.classList.add("loading");
+
 
     // show ai chat loading state
     if (_aiLoading) aiLoading.classList.add("visible");
 
     // show modal loading
-    if(isGlobal){
+    if (isGlobal && modalLoader) {
       modalLoader.classList.add("visible");
     }
   }else{
@@ -681,11 +702,16 @@ function handleElementLoadingState(loading, isGlobal = false, _aiLoading = false
     sendEscallationBtn.disabled = false;
     sendEscallationBtn.classList.remove("loading");
 
+    // enable refresh conversation btn
+    refreshConversation.disabled = false;
+    refreshConversation.classList.remove("loading");
+
+
     // hide ai chat loading state
     if (_aiLoading) aiLoading.classList.remove("visible");
 
     // hide modal loading
-    if(isGlobal){
+    if (isGlobal && modalLoader) {
       modalLoader.classList.remove("visible");
     }
   }

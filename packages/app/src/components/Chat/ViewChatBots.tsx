@@ -5,6 +5,7 @@ import {
   FlexColStart,
   FlexRowCenter,
   FlexRowCenterBtw,
+  FlexRowStart,
   FlexRowStartBtw,
   FlexRowStartCenter,
   FlexStartColCenter,
@@ -113,32 +114,66 @@ function ViewChatBots() {
           ))}
         </select>
       </FlexRowStartBtw>
-      <FlexRowStartBtw className="w-full h-full gap-2">
+      <FlexRowStartBtw className="w-full h-full overflow-auto gap-2">
         {selectedChat && (
           <FlexColStart className="w-full h-full px-4 border-r-solid border-r-[.5px] border-r-white-600 ">
             <br />
-            <p className="text-gray-100 font-jbSB text-[12px] ">chatbot name</p>
-            <p className="text-white-100 font-jbEB">{selectedChat.name}</p>
-            <p className="text-gray-100 font-jbSB text-[12px] ">agent name</p>
-            <p className="text-white-100 font-jbEB">
-              {selectedChat.agent_name}
+            <FlexRowStart className="w-full">
+              <FlexColStart className="w-full">
+                <p className="text-gray-100 font-jbSB text-[12px] ">
+                  chatbot name
+                </p>
+                <p className="text-white-100 font-jbEB">{selectedChat.name}</p>
+              </FlexColStart>
+              <FlexColStart>
+                <p className="text-gray-100 font-jbSB text-[12px] ">
+                  agent name
+                </p>
+                <p className="text-white-100 font-jbEB">
+                  {selectedChat.agent_name}
+                </p>
+              </FlexColStart>
+            </FlexRowStart>
+
+            <br />
+            <p className="text-white-300 font-jbSB text-[11px] ">
+              Paste the following HTML snippet into the{" "}
+              <span className="text-orange-100">{"<head>"}</span> tag of your
+              webpage:
             </p>
+            <FlexRowStartBtw className="relative w-full p-5 rounded-md bg-dark-200">
+              <p className="text-orange-100 font-jbSB text-[12px] ">
+                {cssContent}
+              </p>
+              <button
+                className="p-1 bg-dark-300 text-white-100 rounded-md absolute top-2 right-2"
+                onClick={() => {
+                  navigator.clipboard.writeText(cssContent);
+                  toast.success("Copied to clipboard");
+                }}
+              >
+                <Copy size={13} />
+              </button>
+            </FlexRowStartBtw>
 
             <br />
             <p className="text-white-300 font-jbSB text-[11px] ">
               To add the Chat bubble at the corner of your website, paste the
-              following JavaScript snippet into the{" "}
-              <span className="text-orange-100">{"<head>"}</span> tag of your
+              following JavaScript snippet before the closing {" "}
+              <span className="text-orange-100">{"</body>"}</span> tag of your
               webpage:
             </p>
             <FlexRowStartBtw className="relative w-full p-5 rounded-md bg-dark-200">
               <p className="text-orange-100 font-jbSB text-[12px] ">
                 {scriptContent}
               </p>
-              <button className="p-1 bg-dark-300 text-white-100 rounded-md absolute top-2 right-2" onClick={()=>{
-                navigator.clipboard.writeText(scriptContent)
-                toast.success("Copied to clipboard")
-              }}>
+              <button
+                className="p-1 bg-dark-300 text-white-100 rounded-md absolute top-2 right-2"
+                onClick={() => {
+                  navigator.clipboard.writeText(scriptContent);
+                  toast.success("Copied to clipboard");
+                }}
+              >
                 <Copy size={13} />
               </button>
             </FlexRowStartBtw>
@@ -161,6 +196,9 @@ function ViewChatBots() {
               )}
               Delete chatbot
             </Button>
+            <br />
+            <br />
+            <br />
           </FlexColStart>
         )}
         {selectedChat && (

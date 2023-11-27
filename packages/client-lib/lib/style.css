@@ -42,6 +42,12 @@
     color: #fff;
 }
 
+.swissai-chat-container .swissai-chat-header .right{
+    display: flex;
+    align-items: center;
+    justify-items: center;
+    gap: 10px;
+}
 .swissai-chat-container .swissai-chat-header .swissai-chat-header-close{
     width: 30px;
     height: 30px;
@@ -734,6 +740,32 @@
     opacity: 0.5;
 }
 
+/* Refresh conversation */
+.swissai-refresh-conversation{
+    background-color:transparent;
+    color:#fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    transform: scale(.78);
+}
+
+.swissai-refresh-conversation.loading {
+    animation: spin .7s linear infinite;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
 /* Notyf */
 .notyf__wrapper{

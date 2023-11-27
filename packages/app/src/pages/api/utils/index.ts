@@ -1,9 +1,7 @@
 import axios from "axios";
 import cheerio from "cheerio";
 import HttpException from "../exception";
-import fs from "fs";
 import puppeteer from "puppeteer";
-const chrome = require("chrome-aws-lambda");
 import { RESPONSE_CODE } from "@/types";
 
 export async function extractLinksFromWebPages(url: string) {

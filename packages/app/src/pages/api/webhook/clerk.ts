@@ -35,12 +35,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       image_url,
       first_name,
       last_name,
+      username,
       id,
       external_accounts,
     } = data as any;
 
-    const randName = `${Math.floor(Math.random() * 1000000)}${first_name}`
-    const username = external_accounts[0]?.username ?? randName;
+    const randName = `${Math.floor(Math.random() * 1000000)}${first_name ?? username}`
+    const _username = external_accounts[0]?.username ?? randName;
 
     // check if user exists, if it doesn't then create a new user
     // if it does do nothing
@@ -55,13 +56,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (!user) {
       await prisma.users.create({
-        data:{
-            id,
-            fullname: `${fullname}`,
-            email,
-            image: image_url,
-            username
-        }
+        data: {
+          id,
+          fullname: `${fullname}`,
+          email,
+          image: image_url,
+          username: _username,
+        },
       });
 
       console.log(`✅ User ${email} created!`);
@@ -79,8 +80,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       await prisma.users.delete({ where:{id} });
       // delete all chats
       await prisma.chats.deleteMany({ where:{userId: id} });
-      // delete all secrets
-      await prisma.chats.deleteMany({ where: { userId: id } });
 
       console.log(`✅ User ${id} data deleted`);
     } catch (e: any) {

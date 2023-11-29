@@ -12,6 +12,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const payload = JSON.stringify(wh_body);
   const headers = req.headers;
 
+  console.log("WEBHOOK SECR", process.env.CLERK_WH_SECRET);
+
   // Create a new Webhook instance with your webhook secret
   const wh = new Webhook(process.env.CLERK_WH_SECRET as string);
 

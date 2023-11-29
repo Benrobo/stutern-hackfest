@@ -37,11 +37,13 @@ export default function Home() {
             Efficiency and Client Satisfaction.
           </p>
           <br />
-          <button onClick={() => (window.location.href = "/auth")}>
-            <Button className="w-auto px-6 font-jbEB" variant={"primary"}>
+            <Button
+              onClick={() => user ? window.location.href = "/dashboard" : (window.location.href = "/auth")}
+              className="w-auto px-6 font-jbEB"
+              variant={"primary"}
+            >
               Try for free
             </Button>
-          </button>
         </FlexColStart>
         <Image
           src={"/images/header1.png"}

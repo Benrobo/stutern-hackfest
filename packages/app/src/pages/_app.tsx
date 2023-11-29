@@ -13,6 +13,7 @@ import { Router } from "next/router";
 // @ts-ignore
 import nProgress from "nprogress";
 import "../styles/nprogress.css";
+import ErrorBoundary from "@/components/ErrorBoundaries";
 
 const queryClient = new QueryClient();
 
@@ -37,20 +38,22 @@ export default function App({ Component, pageProps }: AppProps) {
           }
         `}
       </style>
-      <ClerkProvider>
-        <QueryClientProvider client={queryClient}>
-          <DataContextProvider>
-            <LayoutContextProvider>
-                <ComponentLayout>
-                  <Theme>
-                    <Component {...pageProps} />
-                  </Theme>
-                </ComponentLayout>
-                <Toaster />
-            </LayoutContextProvider>
-          </DataContextProvider>
-        </QueryClientProvider>
-      </ClerkProvider>
+      <ErrorBoundary>
+        <ClerkProvider>
+          <QueryClientProvider client={queryClient}>
+            <DataContextProvider>
+              <LayoutContextProvider>
+                  <ComponentLayout>
+                    <Theme>
+                      <Component {...pageProps} />
+                    </Theme>
+                  </ComponentLayout>
+                  <Toaster />
+              </LayoutContextProvider>
+            </DataContextProvider>
+          </QueryClientProvider>
+        </ClerkProvider>
+      </ErrorBoundary>
     </>
   );
 }
